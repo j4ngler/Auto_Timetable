@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Contact{% endblock %}
+{% block page_title %}Contact{% endblock %}
+{% block content %}
+
+<section class="panel" style="padding: 28px;">
+  <div style="display:grid; grid-template-columns: 0.9fr 1.1fr; gap: 24px; align-items: start;">
+    <div>
+      <img src="{{ url_for('static', filename='image1.png') }}" alt="Contact" style="width:340px; height:340px; object-fit:cover; border-radius:16px; border:1px solid var(--border); background:#fff7e6;"/>
+    </div>
+    <div>
+      <h1 style="margin:0 0 12px 0;">Contact us</h1>
+      <form style="display:grid; gap:12px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div><label>First name</label><input placeholder="Hai Anh" /></div>
+          <div><label>Last name</label><input placeholder="Le" /></div>
+        </div>
+        <div><label>Email address</label><input placeholder="schedhub@gmail.com" /></div>
+        <div><label>Your message</label><textarea rows="6" placeholder="Enter your question or message"></textarea></div>
+        <div><button class="btn" type="button" style="width:200px; background:#0f0f0f;">Submit</button></div>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+

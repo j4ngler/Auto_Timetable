@@ -1,0 +1,8 @@
+{
+  "baokute4@gmail.com": {
+    "name": "Bao",
+    "username": "Bao",
+    "mode": "student",
+    "password_hash": "scrypt:32768:8:1$vyNdp6lpL0CzVDXd$376c7a823b1b32060f1e0e17a7983aad174d73c5996ddc70fe5401fa493adcce069f45053ba2d26e983e155d7c6c54844f1520b19deddbd9bb3204cb0ef89cab"
+  }
+}

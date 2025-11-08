@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}SPCN Dashboard{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/static/styles.css">
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand"><img src="{{ url_for('static', filename='image1.png') }}" alt="SchedHub" style="height:28px; vertical-align:middle; margin-right:8px; border-radius:6px;">SPCN</div>
+        <nav class="menu">
+          <!-- Topbar đã có Landing/Contact/About và Log in -->
+          <div style="height:1px; background:#e5e7eb; margin:10px 0;"></div>
+          <a href="/" class="menu-item"><i class="bi bi-speedometer2"></i>Dashboard</a>
+          <a href="/timetable/student" class="menu-item"><i class="bi bi-person"></i>TKB cá nhân</a>
+          <a href="/timetable/school" class="menu-item"><i class="bi bi-buildings"></i>TKB toàn trường</a>
+          <a href="/schedule/new" class="menu-item"><i class="bi bi-calendar2-plus"></i>Tạo TKB</a>
+          <a href="/upload" class="menu-item"><i class="bi bi-upload"></i>Upload</a>
+          <a href="/constraints" class="menu-item"><i class="bi bi-sliders"></i>Constraints</a>
+          <a href="/profile" class="menu-item"><i class="bi bi-person-gear"></i>Hồ sơ</a>
+          
+        </nav>
+      </aside>
+      <div class="main">
+        <header class="topbar">
+          <div class="topbar-title">{% block page_title %}SPCN Dashboard{% endblock %}</div>
+          <nav class="topbar-nav">
+            <a href="/contact">Contact</a>
+            <a href="/about">About</a>
+          </nav>
+          <div class="topbar-auth">
+            {% if session.user_email %}
+              <a class="user-name" href="/profile" style="text-decoration:none; margin-right:8px;">{{ session.user_name or session.user_email }}</a>
+              <a class="btn secondary" href="/auth/logout">Logout</a>
+            {% else %}
+              <a class="btn secondary" href="/auth/signin" style="margin-right:8px;">Sign In</a>
+              <a class="btn secondary" href="/auth/login">Log In</a>
+            {% endif %}
+          </div>
+        </header>
+        <main class="content">
+          {% block content %}{% endblock %}
+        </main>
+      </div>
+    </div>
+  </body>
+  </html>
+
+

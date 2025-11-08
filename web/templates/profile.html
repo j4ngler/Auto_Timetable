@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Hồ sơ{% endblock %}
+{% block page_title %}Hồ sơ người dùng{% endblock %}
+{% block content %}
+<section class="panel">
+  <h3 style="margin-top:0">Tài khoản</h3>
+  <div style="margin-bottom:12px; color:var(--muted)">Email: <strong>{{ user_email }}</strong></div>
+  <form method="post" style="display:grid; gap:12px; max-width:420px;">
+    <label>Tên hiển thị</label>
+    <input name="name" value="{{ user_name }}" placeholder="Tên hiển thị" style="padding:10px; border:1px solid var(--border); border-radius:8px;" />
+
+    <label>Số điện thoại</label>
+    <input name="phone" value="{{ user_phone }}" placeholder="Số điện thoại" style="padding:10px; border:1px solid var(--border); border-radius:8px;" />
+
+    <label>Khóa (cohort)</label>
+    <input name="cohort" value="{{ user_cohort }}" placeholder="K68/K69..." style="padding:10px; border:1px solid var(--border); border-radius:8px;" />
+
+    <label>Lớp</label>
+    <input name="class_name" value="{{ user_class }}" placeholder="VD: DTVT1-K69" style="padding:10px; border:1px solid var(--border); border-radius:8px;" />
+
+    <label>Ngành</label>
+    <select name="major" style="padding:10px; border:1px solid var(--border); border-radius:8px;">
+      <option value="EE" {% if user_major=='EE' %}selected{% endif %}>EE (Điện)</option>
+      <option value="ET" {% if user_major=='ET' %}selected{% endif %}>ET (Điện tử Viễn thông)</option>
+    </select>
+
+    <label>Ảnh đại diện (URL)</label>
+    <input name="avatar_url" value="{{ user_avatar }}" placeholder="https://..." style="padding:10px; border:1px solid var(--border); border-radius:8px;" />
+    <button class="btn" type="submit">Lưu</button>
+  </form>
+</section>
+{% endblock %}
+
+

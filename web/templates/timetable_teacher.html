@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Xem TKB cá nhân (Giáo viên){% endblock %}
+{% block page_title %}Xem TKB cá nhân (Giáo viên){% endblock %}
+{% block content %}
+<section class="panel">
+  <p style="color:var(--muted)">Khung TKB giáo viên. Có thể lọc theo tên giáo viên từ dữ liệu.</p>
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr><th>Teacher</th><th>CourseID</th><th>SubjectName</th><th>Day</th><th>TimeSlot</th><th>Room</th></tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+</section>
+<script>
+async function load(){
+  const res = await fetch('/download?file=schedule_final.csv'); if(!res.ok) return;
+  const text = await res.text();
+  const lines = text.split(/\r?\n/).filter(Boolean);
+  const body = document.getElementById('rows');
+  const cols = lines[0].split(',');
+  const map = {Teacher: cols.indexOf('Teacher'), CourseID: cols.indexOf('CourseID'), SubjectName: cols.indexOf('SubjectName'), Day: cols.indexOf('Day'), TimeSlot: cols.indexOf('TimeSlot'), RoomAssigned: cols.indexOf('RoomAssigned')};
+  for(let i=1;i<lines.length;i++){
+    const c = lines[i].split(',');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${c[map.Teacher]||''}</td><td>${c[map.CourseID]||''}</td><td>${c[map.SubjectName]||''}</td><td>${c[map.Day]||''}</td><td>${c[map.TimeSlot]||''}</td><td>${c[map.RoomAssigned]||''}</td>`;
+    body.appendChild(tr);
+  }
+}
+load();
+</script>
+{% endblock %}
+
+

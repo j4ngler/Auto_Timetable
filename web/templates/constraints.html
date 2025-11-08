@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% block title %}Constraints{% endblock %}
+{% block page_title %}Constraints{% endblock %}
+{% block content %}
+<h3 style="margin:8px 0 12px 0;">Chỉnh sửa constraints.json</h3>
+
+<form id="cForm" class="panel">
+  <div style="display:grid; gap:12px;">
+    <div class="card" style="padding:12px;">
+      <h4 style="margin:0 0 10px 0;">Thiết lập trực quan</h4>
+      <div style="display:grid; gap:10px; grid-template-columns: 1fr 1fr;">
+        <div>
+          <label style="font-weight:600;">Không trùng trong cùng ca</label>
+          <div>
+            <label><input type="checkbox" id="chkTeacher"> Teacher</label>
+          </div>
+          <div>
+            <label><input type="checkbox" id="chkRoom"> RoomAssigned</label>
+          </div>
+        </div>
+        <div>
+          <label style="font-weight:600;" for="roomCandidates">Chỉ dùng RoomCandidates</label>
+          <div>
+            <label><input type="checkbox" id="roomCandidates"> Bật</label>
+          </div>
+          <div style="margin-top:8px;">
+            <label style="font-weight:600;" for="maxPerSlot">Giới hạn lớp/slot</label>
+            <input id="maxPerSlot" type="number" min="0" placeholder="(để trống = không giới hạn)" style="width:100%;">
+          </div>
+        </div>
+      </div>
+      <div style="display:grid; gap:10px; grid-template-columns: 1fr 1fr; margin-top:10px;">
+        <div>
+          <label style="font-weight:600;" for="priorityDay">Thứ tự ưu tiên ngày</label>
+          <input id="priorityDay" type="text" placeholder="Mon,Tue,Wed,Thu,Fri,Sat" style="width:100%;">
+        </div>
+        <div>
+          <label style="font-weight:600;" for="prioritySlot">Thứ tự ưu tiên ca</label>
+          <input id="prioritySlot" type="text" placeholder="1,2,3,4" style="width:100%;">
+        </div>
+      </div>
+    </div>
+
+    <input type="hidden" id="constraints" name="constraints" />
+    <div class="actions">
+      <button class="btn" type="submit">Lưu</button>
+      <a class="btn secondary" href="/preview?file=constraints.json">Xem hiện tại</a>
+      <a class="btn secondary" href="/">Về Dashboard</a>
+    </div>
+    <p style="color: var(--muted); font-size: 13px;">Chọn các tuỳ chọn phía trên rồi bấm Lưu để áp dụng.</p>
+    <div id="msg"></div>
+  </div>
+</form>
+
+<script>
+  const form = document.getElementById('cForm');
+  const msg = document.getElementById('msg');
+  const txt = document.getElementById('constraints');
+  const chkTeacher = document.getElementById('chkTeacher');
+  const chkRoom = document.getElementById('chkRoom');
+  const roomCandidates = document.getElementById('roomCandidates');
+  const maxPerSlot = document.getElementById('maxPerSlot');
+  const priorityDay = document.getElementById('priorityDay');
+  const prioritySlot = document.getElementById('prioritySlot');
+
+  function loadToUI() {
+    try {
+      const obj = JSON.parse(`{{ constraints_text|tojson|safe }}`);
+      const noOverlap = (obj.no_overlap && obj.no_overlap.by) || [];
+      chkTeacher.checked = noOverlap.includes('Teacher');
+      chkRoom.checked = noOverlap.includes('RoomAssigned');
+      roomCandidates.checked = !!obj.room_candidates;
+      maxPerSlot.value = obj.max_classes_per_slot ?? '';
+      const days = (obj.priority && obj.priority.Day) || ['Mon','Tue','Wed','Thu','Fri','Sat'];
+      const slots = (obj.priority && obj.priority.TimeSlot) || [1,2,3,4];
+      priorityDay.value = days.join(',');
+      prioritySlot.value = slots.join(',');
+    } catch (_) {}
+  }
+
+  function uiToJson() {
+    let obj = {};
+    obj.no_overlap = obj.no_overlap || {};
+    const arr = [];
+    if (chkTeacher.checked) arr.push('Teacher');
+    if (chkRoom.checked) arr.push('RoomAssigned');
+    obj.no_overlap.by = arr;
+    obj.room_candidates = roomCandidates.checked;
+    const maxVal = String(maxPerSlot.value || '').trim();
+    obj.max_classes_per_slot = maxVal === '' ? null : Number(maxVal);
+    obj.priority = obj.priority || {};
+    obj.priority.Day = priorityDay.value.split(',').map(s=>s.trim()).filter(Boolean);
+    obj.priority.TimeSlot = prioritySlot.value.split(',').map(s=>Number(s.trim())).filter(v=>!Number.isNaN(v));
+    txt.value = JSON.stringify(obj);
+  }
+
+  // Khởi tạo từ JSON ra UI
+  loadToUI();
+  // Đồng bộ khi người dùng sửa các trường trực quan
+  [chkTeacher, chkRoom, roomCandidates, maxPerSlot, priorityDay, prioritySlot].forEach(el=>{
+    el.addEventListener('input', uiToJson);
+    el.addEventListener('change', uiToJson);
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    msg.textContent = '';
+    // Đảm bảo textarea đã phản ánh các trường UI
+    uiToJson();
+    const fd = new FormData(form);
+    try {
+      const res = await fetch('/constraints', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (data.ok) msg.textContent = 'Đã lưu constraints.json';
+      else msg.textContent = 'Có lỗi xảy ra';
+    } catch (e) {
+      msg.textContent = 'Lỗi khi lưu';
+    }
+  });
+  </script>
+{% endblock %}
+
+

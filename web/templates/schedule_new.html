@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Tạo mới thời khoá biểu{% endblock %}
+{% block page_title %}Tạo mới thời khoá biểu{% endblock %}
+{% block content %}
+<section class="panel" style="display:grid; gap:12px;">
+  <div class="actions">
+    <a class="btn" href="/run/schedule" onclick="event.preventDefault(); run();">Chạy sắp xếp</a>
+    <a class="btn secondary" href="/preview?file=schedule_final.csv">Xem kết quả</a>
+  </div>
+
+  <div>
+    <label>Job ID</label>
+    <div style="display:flex; gap:8px;">
+      <input id="jobId" placeholder="Dán job_id hoặc bấm Chạy sắp xếp" />
+      <button class="btn secondary" id="btnPoll">Poll</button>
+    </div>
+  </div>
+
+  <pre id="jobStatus" style="white-space: pre-wrap; background:var(--panel); color:var(--text); padding:12px; max-height:300px; overflow:auto;"></pre>
+</section>
+
+<script>
+async function post(url) { const r = await fetch(url, {method:'POST'}); return r.json(); }
+async function get(url) { const r = await fetch(url); return r.json(); }
+async function poll(id){
+  const box = document.getElementById('jobStatus');
+  box.textContent='Polling...';
+  let stop=false; while(!stop){
+    const s = await get(`/status/${id}`);
+    box.textContent = JSON.stringify(s, null, 2);
+    if(s.status==='completed' || s.status==='failed') stop=true; else await new Promise(r=>setTimeout(r,1500));
+  }
+}
+async function run(){
+  const res = await post('/run/schedule');
+  document.getElementById('jobId').value = res.job_id; await poll(res.job_id);
+}
+document.getElementById('btnPoll').addEventListener('click', async()=>{
+  const id = document.getElementById('jobId').value.trim(); if(id) await poll(id);
+});
+</script>
+{% endblock %}
+
+

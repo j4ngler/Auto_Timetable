@@ -1,0 +1,26 @@
+{% extends 'base_auth.html' %}
+{% block title %}Log In{% endblock %}
+{% block page_title %}Log In{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-bg"></div>
+  <div class="auth-card auth-spec">
+    <img class="auth-lock" src="{{ url_for('static', filename='image2.png') }}" alt="lock"/>
+    <h3 class="auth-title">Log in</h3>
+    {% if error %}<div style="color:#b91c1c;">{{ error }}</div>{% endif %}
+    {% if message %}<div style="color:#16a34a;">{{ message }}</div>{% endif %}
+    <form method="post" action="/auth/login" class="auth-form">
+      <div class="input-icon"><i class="bi bi-person"></i><input name="email" placeholder="Username" /></div>
+      <div class="input-icon"><i class="bi bi-key"></i><input name="password" type="password" placeholder="Password" /></div>
+      <button class="auth-btn" type="submit">LOG IN</button>
+    </form>
+    <div style="margin-top:12px; text-align:center; font-size:14px;">
+      Chưa có tài khoản?
+      <a href="/auth/signin" style="font-weight:600; text-decoration:none;">Đăng ký</a>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+

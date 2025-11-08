@@ -1,0 +1,8 @@
+Flask==3.0.3
+# Dành cho các script AI/scheduler trong thư mục gốc dự án
+pandas==2.2.2
+numpy==1.26.4
+scikit-learn==1.5.2
+openpyxl==3.1.5
+
+

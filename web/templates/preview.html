@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Preview {{ filename }}{% endblock %}
+{% block page_title %}Preview: {{ filename }}{% endblock %}
+{% block content %}
+<h3 style="margin:8px 0 12px 0;">Preview: {{ filename }}</h3>
+
+<div class="table-container">
+  <table>
+    {% if headers %}
+    <thead>
+      <tr>
+        {% for h in headers %}
+        <th>{{ h }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    {% endif %}
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        {% for c in r %}
+        <td>{{ c }}</td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div style="display:flex; align-items:center; gap:10px; margin-top:12px;">
+  {% set prev_page = page - 1 %}
+  {% set next_page = page + 1 %}
+  <a class="btn secondary" href="/preview?file={{ filename }}&page={{ prev_page if prev_page > 0 else 1 }}">« Trước</a>
+  <span>Trang {{ page }} ({{ total_rows }} dòng)</span>
+  <a class="btn secondary" href="/preview?file={{ filename }}&page={{ next_page }}">Sau »</a>
+  <a class="btn" href="/download?file={{ filename }}">Tải xuống</a>
+  <a class="btn secondary" href="/">Về Dashboard</a>
+</div>
+{% endblock %}
+
+

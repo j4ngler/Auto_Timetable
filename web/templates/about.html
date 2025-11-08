@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}About{% endblock %}
+{% block page_title %}About{% endblock %}
+{% block content %}
+
+<section class="panel" style="padding: 28px;">
+  <div style="display:grid; grid-template-columns: 1.2fr 0.8fr; gap: 32px; align-items: start;">
+    <div>
+      <h1 style="margin: 0 0 16px 0; font-size: 44px;">About SchedHub</h1>
+      <p style="color:var(--muted); font-weight:600;">SchedHub</p>
+      <p style="color:var(--muted); line-height:1.8;">
+        is a student-built project created by Hai Anh, a high schooler passionate about applied mathematics and technology.
+      </p>
+      <p style="color:var(--muted); line-height:1.8;">
+        Designed to simplify the complex process of creating and managing timetables, SchedHub brings together automation, optimization, and usability. With a focus on both accuracy and accessibility, it offers tailored interfaces for schools, teachers, students, and parents — making communication and scheduling effortless.
+      </p>
+      <p style="color:var(--muted); line-height:1.8;">
+        Born from a desire to apply mathematical algorithms to real-world problems, SchedHub represents Hai Anh’s vision of how math and code can work hand in hand to improve education management.
+      </p>
+    </div>
+    <div>
+      <img src="{{ url_for('static', filename='image.jpg') }}" alt="About" style="width:80%; max-width:420px; border-radius: 10px; border:1px solid var(--border); box-shadow: var(--shadow); display:block; margin: 8px auto 0 auto;">
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2 style="text-align:center; margin:6px 0 16px 0;">MISSION AND VISION</h2>
+  <div class="grid-3">
+    <div class="card">
+      <h3 style="margin:0 0 8px 0;">SIMPLIFY</h3>
+      <p style="color:var(--muted);">Tự động tạo TKB, phát hiện xung đột, giảm thao tác thủ công để tập trung vào chất lượng đào tạo.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 8px 0;">EMPOWER</h3>
+      <p style="color:var(--muted);">Giao diện trực quan cho từng vai trò; mọi thông tin được tổ chức trong một bảng điều khiển thống nhất.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 8px 0;">CONNECT</h3>
+      <p style="color:var(--muted);">Kết nối nhu cầu đa dạng từ phổ thông tới đại học với thiết kế module linh hoạt.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+

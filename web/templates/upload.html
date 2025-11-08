@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}Upload{% endblock %}
+{% block page_title %}Upload{% endblock %}
+{% block content %}
+<h3 style="margin:8px 0 12px 0;">Upload file đầu vào</h3>
+
+<form id="uploadForm" class="panel">
+  <div style="display:grid; gap:12px;">
+    <div>
+      <label for="target_name">Chọn đích</label>
+      <select id="target_name" name="target_name" required>
+        {% for f in allowed %}
+        <option value="{{ f }}">{{ f }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div>
+      <label for="file">Chọn file</label>
+      <input type="file" id="file" name="file" required />
+    </div>
+
+    <div class="actions">
+      <button class="btn" type="submit">Upload</button>
+      <span id="msg"></span>
+    </div>
+    <progress id="prog" value="0" max="100" style="display:none;"></progress>
+    <p style="color: var(--muted); font-size: 13px;">Chỉ cho phép các tên file trong danh sách an toàn.</p>
+
+    <div class="actions" style="flex-wrap: wrap;">
+      <a class="btn secondary" href="/">Về Dashboard</a>
+      <a class="btn secondary" href="/preview?file=classes_to_schedule.csv">Xem classes_to_schedule.csv</a>
+      <a class="btn secondary" href="/preview?file=constraints.json">Xem constraints.json</a>
+      <a class="btn secondary" href="/preview?file=timeslots.csv">Xem timeslots.csv</a>
+      <a class="btn secondary" href="/preview?file=timetable_user.csv">Xem timetable_user.csv</a>
+      <a class="btn secondary" href="/preview?file=TKB_ca_nhan.csv">Xem TKB_ca_nhan.csv</a>
+      <a class="btn secondary" href="/preview?file=ai_ranked_classes.csv">Xem ai_ranked_classes.csv</a>
+      <a class="btn secondary" href="/preview?file=schedule_final.csv">Xem schedule_final.csv</a>
+      <a class="btn secondary" href="/preview?file=timetable_all.csv">Xem timetable_all.csv</a>
+    </div>
+  </div>
+</form>
+
+<script>
+  const form = document.getElementById('uploadForm');
+  const msg = document.getElementById('msg');
+  const prog = document.getElementById('prog');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    msg.textContent = '';
+    const fd = new FormData(form);
+    prog.style.display = 'block';
+    prog.value = 10;
+    try {
+      const res = await fetch('/upload', { method: 'POST', body: fd });
+      prog.value = 80;
+      const data = await res.json();
+      prog.value = 100;
+      if (data.ok) msg.textContent = 'Upload thành công: ' + data.saved_to;
+      else msg.textContent = 'Có lỗi xảy ra';
+    } catch (e) {
+      msg.textContent = 'Upload thất bại';
+    } finally {
+      setTimeout(()=>{ prog.style.display = 'none'; prog.value = 0; }, 800);
+    }
+  });
+  </script>
+{% endblock %}
+
+

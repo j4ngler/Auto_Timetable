@@ -1,0 +1,40 @@
+{% extends 'base_auth.html' %}
+{% block title %}Sign In{% endblock %}
+{% block page_title %}Sign In{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-bg"></div>
+  <div class="auth-card auth-spec">
+    <img class="auth-lock" src="{{ url_for('static', filename='image2.png') }}" alt="lock"/>
+    <h3 class="auth-title">Create account</h3>
+    {% if error %}<div style="color:#b91c1c;">{{ error }}</div>{% endif %}
+    {% if message %}<div style="color:#16a34a;">{{ message }}</div>{% endif %}
+    <form method="post" action="/auth/signin" class="auth-form">
+      <div class="input-icon"><i class="bi bi-envelope"></i><input name="email" placeholder="Gmail" /></div>
+      <div class="input-icon"><i class="bi bi-person"></i><input name="username" placeholder="Username" /></div>
+      <div class="input-icon"><i class="bi bi-key"></i><input name="password" type="password" placeholder="Password" /></div>
+      <div class="input-icon"><i class="bi bi-key"></i><input name="password2" type="password" placeholder="Rewrite password" /></div>
+      <div class="input-icon"><i class="bi bi-people"></i>
+        <select name="user_mode">
+          <option value="student">User mode</option>
+          <option value="teacher">Teacher</option>
+          <option value="student">Student</option>
+        </select>
+      </div>
+      <div class="input-icon"><i class="bi bi-diagram-3"></i>
+        <select name="user_major">
+          <option value="EE">Ngành: EE (Điện)</option>
+          <option value="ET">Ngành: ET (Điện tử Viễn thông)</option>
+        </select>
+      </div>
+      <button class="auth-btn" type="submit">SIGN IN</button>
+    </form>
+    <div style="margin-top:12px; text-align:center; font-size:14px;">
+      Đã có tài khoản?
+      <a href="/auth/login" style="font-weight:600; text-decoration:none;">Đăng nhập</a>
+    </div>
+  </div>
+  </div>
+{% endblock %}
+
+

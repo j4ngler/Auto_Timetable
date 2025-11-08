@@ -1,0 +1,19 @@
+{% extends 'base_auth.html' %}
+{% block title %}Welcome{% endblock %}
+{% block page_title %}Welcome{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-bg"></div>
+  <div class="auth-card" style="max-width:520px; text-align:center;">
+    <img class="auth-lock" src="{{ url_for('static', filename='image2.png') }}" alt="logo"/>
+    <h3 class="auth-title">SPCN Timetable</h3>
+    <p style="color: var(--muted); margin: 8px 0 16px 0;">Vui lòng đăng nhập để sử dụng các tính năng.</p>
+    <div style="display:flex; gap:12px; justify-content:center;">
+      <a class="btn" href="/auth/login" style="padding:10px 16px;">Đăng nhập</a>
+      <a class="btn secondary" href="/auth/signin" style="padding:10px 16px;">Tạo tài khoản</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+
