@@ -26,7 +26,7 @@ TIMETABLE_USER = get_data_path('timetable_user.csv')
 
 # Đọc MinCredits và MaxCredits từ timetable_user.csv
 def load_user_preferences():
-    """Đọc sở thích người dùng từ timetable_user.csv"""
+    """Đọc sở thích người dùng từ timetable_user.csv (đã được đồng bộ từ constraints.json)"""
     default_min = 14
     default_max = 20
     
@@ -41,14 +41,17 @@ def load_user_preferences():
             max_credits = user_pref.get('MaxCredits', default_max)
             # Chuyển đổi sang int nếu là string hoặc NaN
             try:
-                min_credits = int(float(min_credits)) if pd.notna(min_credits) else default_min
+                if pd.notna(min_credits):
+                    min_credits = int(float(min_credits))
+                    default_min = min_credits
             except (ValueError, TypeError):
-                min_credits = default_min
+                pass
             try:
-                max_credits = int(float(max_credits)) if pd.notna(max_credits) else default_max
+                if pd.notna(max_credits):
+                    max_credits = int(float(max_credits))
+                    default_max = max_credits
             except (ValueError, TypeError):
-                max_credits = default_max
-            return min_credits, max_credits
+                pass
     except Exception as e:
         print(f'[WARNING] Khong doc duoc timetable_user.csv: {e}. Su dung gia tri mac dinh.')
     

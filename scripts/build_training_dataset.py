@@ -1,5 +1,6 @@
 import pandas as pd
 import re
+import json
 from pathlib import Path
 
 # Tìm thư mục gốc dự án
@@ -24,12 +25,21 @@ def get_input_path(filename):
 def get_output_path(filename):
     return DATA_OUTPUT / filename
 
+def get_config_path(filename):
+    config_dir = PROJECT_ROOT / 'config'
+    config_path = config_dir / filename
+    if config_path.exists():
+        return config_path
+    # Fallback về thư mục gốc
+    return PROJECT_ROOT / filename
+
 # Ưu tiên dùng file đã được chèn header chuẩn nếu có
 fixed_file = get_input_path('Ma_hoc_phan_ET_EE_fixed.xlsx')
 normal_file = get_input_path('Ma_hoc_phan_ET_EE.xlsx')
 INPUT_FILE = fixed_file if fixed_file.exists() else normal_file
 OUTPUT_ALL = get_output_path('timetable_all.csv')
 OUTPUT_USER = get_output_path('timetable_user.csv')
+CONSTRAINTS_JSON = get_config_path('constraints.json')
 
 # Các mẫu nhận diện cột
 CODE_PATTERNS = [
@@ -129,6 +139,11 @@ def normalize_day_general(v):
 
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(description='Xử lý dữ liệu Excel và tạo dataset')
+    parser.add_argument('--force', action='store_true', help='Ghi đè file timetable_user.csv nếu đã tồn tại')
+    args = parser.parse_args()
+    
     if not INPUT_FILE.exists():
         print(f'[ERROR] Khong thay file {INPUT_FILE.resolve()}')
         return
@@ -191,18 +206,93 @@ def main():
     print(f'[SUCCESS] Da tao {OUTPUT_ALL.resolve()} ({len(out)} dong)')
 
     # Tạo file timetable_user.csv với đầy đủ đặc trưng
+    # Đọc từ constraints.json nếu có, nếu không dùng giá trị mặc định
+    default_prefs = {
+        'PreferredDays': 'Mon,Tue,Wed,Thu,Fri,Sat',
+        'PreferredTimeSlots': '07:00-09:00,09:00-11:00,13:00-15:00,15:00-17:00',
+        'PreferredRooms': 'D3-504,D3-505,C7-205,C7-206,D5-101,D5-102',
+        'MaxCredits': 24,
+        'MinCredits': 18,
+        'PreferredTeachers': '',
+        'AvoidTeachers': '',
+        'PreferredBuildings': 'D3,C7,D5,D7'
+    }
+    
+    # Đọc từ constraints.json
+    if CONSTRAINTS_JSON.exists():
+        try:
+            with open(CONSTRAINTS_JSON, 'r', encoding='utf-8') as f:
+                constraints = json.load(f)
+            
+            # Đọc credits
+            credits_config = constraints.get('credits', {})
+            if credits_config.get('min_total') is not None:
+                default_prefs['MinCredits'] = int(credits_config['min_total'])
+            if credits_config.get('max_total') is not None:
+                default_prefs['MaxCredits'] = int(credits_config['max_total'])
+            
+            # Đọc buildings
+            buildings_config = constraints.get('buildings', {})
+            preferred_buildings = buildings_config.get('preferred', [])
+            if preferred_buildings:
+                default_prefs['PreferredBuildings'] = ','.join(preferred_buildings)
+            
+            # Đọc rooms
+            rooms_config = constraints.get('rooms', {})
+            preferred_rooms = rooms_config.get('preferred', [])
+            if preferred_rooms:
+                default_prefs['PreferredRooms'] = ','.join(preferred_rooms)
+            
+            # Đọc time_slots
+            time_slots_config = constraints.get('time_slots', {})
+            preferred_slots = time_slots_config.get('preferred', [])
+            if preferred_slots:
+                default_prefs['PreferredTimeSlots'] = ','.join(preferred_slots)
+            elif time_slots_config.get('preferred_morning'):
+                default_prefs['PreferredTimeSlots'] = '07:00-09:00,09:00-11:00'
+            elif time_slots_config.get('preferred_afternoon'):
+                default_prefs['PreferredTimeSlots'] = '13:00-15:00,15:00-17:00'
+            
+            # Đọc priority Day để suy ra PreferredDays
+            priority_config = constraints.get('priority', {})
+            preferred_days = priority_config.get('Day', [])
+            if preferred_days:
+                default_prefs['PreferredDays'] = ','.join(preferred_days)
+            
+            # Đọc teachers
+            teachers_config = constraints.get('teachers', {})
+            preferred_teachers = teachers_config.get('preferred', [])
+            avoid_teachers = teachers_config.get('avoid', [])
+            if preferred_teachers:
+                default_prefs['PreferredTeachers'] = ','.join(preferred_teachers)
+            if avoid_teachers:
+                default_prefs['AvoidTeachers'] = ','.join(avoid_teachers)
+                
+        except Exception as e:
+            print(f'[WARNING] Khong doc duoc constraints.json: {e}. Su dung gia tri mac dinh.')
+    
+    # Tạo DataFrame từ preferences
     sample = pd.DataFrame({
-        'PreferredDays': ['Mon,Tue,Wed,Thu,Fri,Sat'],
-        'PreferredTimeSlots': ['07:00-09:00,09:00-11:00,13:00-15:00,15:00-17:00'],
-        'PreferredRooms': ['D3-504,D3-505,C7-205,C7-206,D5-101,D5-102'],
-        'MaxCredits': [24],
-        'MinCredits': [18],
-        'PreferredTeachers': [''],
-        'AvoidTeachers': [''],
-        'PreferredBuildings': ['D3,C7,D5,D7']
+        'PreferredDays': [default_prefs['PreferredDays']],
+        'PreferredTimeSlots': [default_prefs['PreferredTimeSlots']],
+        'PreferredRooms': [default_prefs['PreferredRooms']],
+        'MaxCredits': [default_prefs['MaxCredits']],
+        'MinCredits': [default_prefs['MinCredits']],
+        'PreferredTeachers': [default_prefs['PreferredTeachers']],
+        'AvoidTeachers': [default_prefs['AvoidTeachers']],
+        'PreferredBuildings': [default_prefs['PreferredBuildings']]
     })
-    sample.to_csv(OUTPUT_USER, index=False, encoding='utf-8-sig')
-    print(f'[SUCCESS] Da tao {OUTPUT_USER.resolve()} (mau cau hinh uu tien nguoi dung)')
+    
+    # Ghi file timetable_user.csv
+    if not OUTPUT_USER.exists() or args.force:
+        sample.to_csv(OUTPUT_USER, index=False, encoding='utf-8-sig')
+        if args.force:
+            print(f'[SUCCESS] Da cap nhat {OUTPUT_USER.resolve()} (dong bo voi constraints.json)')
+        else:
+            print(f'[SUCCESS] Da tao {OUTPUT_USER.resolve()} (dong bo voi constraints.json)')
+    else:
+        print(f'[INFO] File {OUTPUT_USER.resolve()} da ton tai. Bo qua tao moi.')
+        print(f'[INFO] De cap nhat, chay voi flag --force: python build_training_dataset.py --force')
 
 
 if __name__ == '__main__':
