@@ -8,6 +8,7 @@ import sqlite3
 from datetime import datetime
 from typing import Dict, Any, Optional
 import webbrowser
+import pandas as pd
 
 from flask import Flask, render_template, request, send_file, jsonify, abort, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -832,6 +833,92 @@ def create_app() -> Flask:
         file.save(dest)
         return jsonify({'ok': True, 'saved_to': target_name})
 
+    def sync_constraints_to_timetable_user():
+        """Đồng bộ constraints.json -> timetable_user.csv"""
+        try:
+            constraints_path = project_path('constraints.json')
+            timetable_user_path = project_path('timetable_user.csv')
+            
+            if not os.path.exists(constraints_path):
+                return
+            
+            # Đọc constraints.json
+            with open(constraints_path, 'r', encoding='utf-8') as f:
+                constraints = json.load(f)
+            
+            # Giá trị mặc định
+            default_prefs = {
+                'PreferredDays': 'Mon,Tue,Wed,Thu,Fri,Sat',
+                'PreferredTimeSlots': '07:00-09:00,09:00-11:00,13:00-15:00,15:00-17:00',
+                'PreferredRooms': 'D3-504,D3-505,C7-205,C7-206,D5-101,D5-102',
+                'MaxCredits': 24,
+                'MinCredits': 18,
+                'PreferredTeachers': '',
+                'AvoidTeachers': '',
+                'PreferredBuildings': 'D3,C7,D5,D7'
+            }
+            
+            # Đọc credits
+            credits_config = constraints.get('credits', {})
+            if credits_config.get('min_total') is not None:
+                default_prefs['MinCredits'] = int(credits_config['min_total'])
+            if credits_config.get('max_total') is not None:
+                default_prefs['MaxCredits'] = int(credits_config['max_total'])
+            
+            # Đọc buildings
+            buildings_config = constraints.get('buildings', {})
+            preferred_buildings = buildings_config.get('preferred', [])
+            if preferred_buildings:
+                default_prefs['PreferredBuildings'] = ','.join(preferred_buildings)
+            
+            # Đọc rooms
+            rooms_config = constraints.get('rooms', {})
+            preferred_rooms = rooms_config.get('preferred', [])
+            if preferred_rooms:
+                default_prefs['PreferredRooms'] = ','.join(preferred_rooms)
+            
+            # Đọc time_slots
+            time_slots_config = constraints.get('time_slots', {})
+            preferred_slots = time_slots_config.get('preferred', [])
+            if preferred_slots:
+                default_prefs['PreferredTimeSlots'] = ','.join(preferred_slots)
+            elif time_slots_config.get('preferred_morning'):
+                default_prefs['PreferredTimeSlots'] = '07:00-09:00,09:00-11:00'
+            elif time_slots_config.get('preferred_afternoon'):
+                default_prefs['PreferredTimeSlots'] = '13:00-15:00,15:00-17:00'
+            
+            # Đọc priority Day để suy ra PreferredDays
+            priority_config = constraints.get('priority', {})
+            preferred_days = priority_config.get('Day', [])
+            if preferred_days:
+                default_prefs['PreferredDays'] = ','.join(preferred_days)
+            
+            # Đọc teachers
+            teachers_config = constraints.get('teachers', {})
+            preferred_teachers = teachers_config.get('preferred', [])
+            avoid_teachers = teachers_config.get('avoid', [])
+            if preferred_teachers:
+                default_prefs['PreferredTeachers'] = ','.join(preferred_teachers)
+            if avoid_teachers:
+                default_prefs['AvoidTeachers'] = ','.join(avoid_teachers)
+            
+            # Tạo DataFrame và lưu
+            sample = pd.DataFrame({
+                'PreferredDays': [default_prefs['PreferredDays']],
+                'PreferredTimeSlots': [default_prefs['PreferredTimeSlots']],
+                'PreferredRooms': [default_prefs['PreferredRooms']],
+                'MaxCredits': [default_prefs['MaxCredits']],
+                'MinCredits': [default_prefs['MinCredits']],
+                'PreferredTeachers': [default_prefs['PreferredTeachers']],
+                'AvoidTeachers': [default_prefs['AvoidTeachers']],
+                'PreferredBuildings': [default_prefs['PreferredBuildings']]
+            })
+            
+            sample.to_csv(timetable_user_path, index=False, encoding='utf-8-sig')
+            print(f'[INFO] Da dong bo constraints.json -> timetable_user.csv')
+        except Exception as e:
+            print(f'[WARNING] Khong the dong bo constraints.json -> timetable_user.csv: {e}')
+
     @app.route('/constraints', methods=['GET', 'POST'])
     def constraints():
         path = project_path('constraints.json')
@@ -846,6 +933,8 @@ def create_app() -> Flask:
             parsed = json.loads(text)
             with open(path, 'w', encoding='utf-8') as f:
                 json.dump(parsed, f, ensure_ascii=False, indent=2)
+            # Đồng bộ constraints.json -> timetable_user.csv
+            sync_constraints_to_timetable_user()
         except Exception as exc:
             abort(400, description=f'JSON không hợp lệ: {exc}')
         return jsonify({'ok': True})
