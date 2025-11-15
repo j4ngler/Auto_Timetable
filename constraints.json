@@ -1,0 +1,27 @@
+{
+  "no_overlap": {
+    "by": [
+      "Teacher",
+      "RoomAssigned"
+    ],
+    "message": "Không trùng giáo viên/phòng trong cùng Day+TimeSlot"
+  },
+  "room_candidates": true,
+  "max_classes_per_slot": null,
+  "priority": {
+    "Day": [
+      "Mon",
+      "Tue",
+      "Thu",
+      "Wed",
+      "Fri",
+      "Sat"
+    ],
+    "TimeSlot": [
+      1,
+      2,
+      3,
+      4
+    ]
+  }
+}
