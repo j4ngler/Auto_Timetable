@@ -22,10 +22,40 @@ def get_data_path(filename):
 
 AI_RANK = get_data_path('ai_ranked_classes.csv')   # đầu vào đã có cột ai_score
 OUT_REC = get_data_path('schedule_recommended.csv')
+TIMETABLE_USER = get_data_path('timetable_user.csv')
 
-# đặt mục tiêu tín chỉ cho kỳ tới
-MIN_CREDITS = 14
-MAX_CREDITS = 20
+# Đọc MinCredits và MaxCredits từ timetable_user.csv
+def load_user_preferences():
+    """Đọc sở thích người dùng từ timetable_user.csv"""
+    default_min = 14
+    default_max = 20
+    
+    if not TIMETABLE_USER.exists():
+        return default_min, default_max
+    
+    try:
+        df_user = pd.read_csv(TIMETABLE_USER)
+        if len(df_user) > 0:
+            user_pref = df_user.iloc[0]
+            min_credits = user_pref.get('MinCredits', default_min)
+            max_credits = user_pref.get('MaxCredits', default_max)
+            # Chuyển đổi sang int nếu là string hoặc NaN
+            try:
+                min_credits = int(float(min_credits)) if pd.notna(min_credits) else default_min
+            except (ValueError, TypeError):
+                min_credits = default_min
+            try:
+                max_credits = int(float(max_credits)) if pd.notna(max_credits) else default_max
+            except (ValueError, TypeError):
+                max_credits = default_max
+            return min_credits, max_credits
+    except Exception as e:
+        print(f'[WARNING] Khong doc duoc timetable_user.csv: {e}. Su dung gia tri mac dinh.')
+    
+    return default_min, default_max
+
+# Đọc giá trị từ file
+MIN_CREDITS, MAX_CREDITS = load_user_preferences()
 # Số môn tối đa (yêu cầu 9–10)
 MAX_COURSES = 10
 # Phạt mềm khi xếp nhiều môn trong 1 ngày hoặc các môn sát nhau
@@ -82,6 +112,11 @@ def slot_gap_minutes(a, b):
     return 0
 
 def main():
+    # Đọc lại preferences mỗi lần chạy để cập nhật thay đổi
+    global MIN_CREDITS, MAX_CREDITS
+    MIN_CREDITS, MAX_CREDITS = load_user_preferences()
+    print(f'[INFO] MinCredits: {MIN_CREDITS}, MaxCredits: {MAX_CREDITS}')
+    
     df = pd.read_csv(AI_RANK).fillna('')
     # Chuẩn hoá tên cột
     if 'Day' not in df and 'Thứ' in df: df['Day'] = df['Thứ']
@@ -107,6 +142,7 @@ def main():
         cid = str(r['CourseID']).strip()
         typ = str(r['Loại_lớp']).upper().replace(' ','')
         cr = int(r['credits'])
+        # Dừng nếu đã đạt MAX_CREDITS
         if total_credits >= MAX_CREDITS:
             break
         is_lab = ('TN' in typ) or ('THUC HANH' in typ) or ('THỰC HÀNH' in typ)
@@ -133,6 +169,13 @@ def main():
         eff_score = float(r['ai_score']) - penalty
         if eff_score < 0.5:
             continue
+        # Kiểm tra nếu thêm lớp này sẽ vượt quá MAX_CREDITS
+        if total_credits + cr > MAX_CREDITS:
+            # Nếu chưa đạt MIN_CREDITS, vẫn thêm lớp này (ưu tiên đạt MIN)
+            if total_credits < MIN_CREDITS:
+                pass  # Cho phép vượt quá MAX một chút để đạt MIN
+            else:
+                break  # Đã đạt MIN, không thêm nữa nếu vượt MAX
         chosen.append({
             'CourseID': cid,
             'SubjectName': r.get('SubjectName',''),
@@ -150,7 +193,11 @@ def main():
             taken_lab.add(cid)
         else:
             taken_theory.add(cid)
+        # Dừng nếu đã đạt MIN_CREDITS và đủ số môn, hoặc đã đạt MAX_CREDITS
         if total_credits >= MIN_CREDITS and total_courses >= MAX_COURSES:
+            break
+        # Nếu đã đạt MAX_CREDITS thì dừng (kiểm tra lại sau khi thêm lớp)
+        if total_credits >= MAX_CREDITS:
             break
 
     out = pd.DataFrame(chosen)
