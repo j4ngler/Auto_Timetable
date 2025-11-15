@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Thời khoá biểu (Toàn trường){% endblock %}
+{% block page_title %}Thời khoá biểu (Toàn trường){% endblock %}
+{% block content %}
+<section class="panel">
+  <div class="actions" style="margin-bottom:12px;">
+    <a class="btn secondary" href="/preview?file=schedule_final.csv">Xem file CSV</a>
+  </div>
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>ClassID</th><th>CourseID</th><th>SubjectName</th><th>TimeSlot</th><th>Room</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+</section>
+
+<script>
+// Chuẩn hóa giờ học thành hh:mm (dùng lại hàm từ timetable_student.html)
+function normalizeTime(timeStr) {
+  if (!timeStr) return timeStr;
+  if (timeStr.includes(':')) return timeStr;
+  if (timeStr.includes('-')) {
+    const parts = timeStr.split('-');
+    return parts.map(p => {
+      p = p.trim();
+      if (p.length === 4) {
+        return p.substring(0, 2) + ':' + p.substring(2);
+      }
+      return p;
+    }).join('-');
+  }
+  if (timeStr.length === 4 && /^\d{4}$/.test(timeStr)) {
+    return timeStr.substring(0, 2) + ':' + timeStr.substring(2);
+  }
+  return timeStr;
+}
+
+async function load(){
+  const res = await fetch('/download?file=schedule_final.csv');
+  const text = await res.text();
+  const lines = text.split(/\r?\n/).filter(Boolean);
+  const body = document.getElementById('rows');
+  const cols = lines[0].split(',');
+  const map = {
+    ClassID: cols.indexOf('ClassID'), CourseID: cols.indexOf('CourseID'), SubjectName: cols.indexOf('SubjectName'),
+    TimeSlot: cols.indexOf('TimeSlot'), RoomAssigned: cols.indexOf('RoomAssigned')
+  };
+  for(let i=1;i<lines.length;i++){
+    const c = lines[i].split(',');
+    const timeSlot = normalizeTime((c[map.TimeSlot]||'').trim());
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${c[map.ClassID]||''}</td><td>${c[map.CourseID]||''}</td><td>${c[map.SubjectName]||''}</td><td>${timeSlot}</td><td>${c[map.RoomAssigned]||''}</td>`;
+    body.appendChild(tr);
+  }
+}
+load();
+</script>
+{% endblock %}
+
+

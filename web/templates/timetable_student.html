@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% block title %}Xem TKB cá nhân (Học sinh){% endblock %}
+{% block page_title %}Xem TKB cá nhân (Học sinh){% endblock %}
+{% block content %}
+<section class="panel">
+  <div class="actions" style="margin-bottom:12px;">
+    <a class="btn secondary" href="/preview?file=timetable_user.csv">Xem cấu hình người dùng</a>
+    <a class="btn secondary" href="/preview?file=ai_ranked_classes.csv">Gợi ý lớp</a>
+  </div>
+  <p style="color:var(--muted)">TKB cá nhân hiển thị dạng lưới: cột là các ngày trong tuần, hàng là các khung giờ.</p>
+  <div class="timetable-grid-container" style="overflow-x:auto;">
+    <table class="timetable-grid">
+      <thead>
+        <tr>
+          <th class="time-col">Giờ</th>
+          <th>Thứ 2</th>
+          <th>Thứ 3</th>
+          <th>Thứ 4</th>
+          <th>Thứ 5</th>
+          <th>Thứ 6</th>
+          <th>Thứ 7</th>
+        </tr>
+      </thead>
+      <tbody id="grid-body"></tbody>
+    </table>
+  </div>
+</section>
+<script>
+// Chuẩn hóa giờ học thành hh:mm
+function normalizeTime(timeStr) {
+  if (!timeStr) return timeStr;
+  // Nếu đã có dấu : thì giữ nguyên
+  if (timeStr.includes(':')) return timeStr;
+  // Xử lý dạng "0825-1005" -> "08:25-10:05"
+  if (timeStr.includes('-')) {
+    const parts = timeStr.split('-');
+    return parts.map(p => {
+      p = p.trim();
+      if (p.length === 4) {
+        return p.substring(0, 2) + ':' + p.substring(2);
+      }
+      return p;
+    }).join('-');
+  }
+  // Xử lý dạng "0825" -> "08:25"
+  if (timeStr.length === 4 && /^\d{4}$/.test(timeStr)) {
+    return timeStr.substring(0, 2) + ':' + timeStr.substring(2);
+  }
+  return timeStr;
+}
+
+// Hiển thị TKB dạng grid
+async function load(){
+  const dayMap = {'Mon':'Thứ 2', 'Tue':'Thứ 3', 'Wed':'Thứ 4', 'Thu':'Thứ 5', 'Fri':'Thứ 6', 'Sat':'Thứ 7'};
+  const dayReverse = {'Thứ 2':'Mon', 'Thứ 3':'Tue', 'Thứ 4':'Wed', 'Thứ 5':'Thu', 'Thứ 6':'Fri', 'Thứ 7':'Sat'};
+  
+  let res = await fetch('/download?file=schedule_recommended.csv');
+  if(!res.ok){
+    res = await fetch('/download?file=TKB_ca_nhan.csv');
+  }
+  if(!res.ok){
+    res = await fetch('/download?file=schedule_final.csv');
+  }
+  if(!res.ok){ return; }
+  const text = await res.text();
+  const lines = text.split(/\r?\n/).filter(Boolean);
+  const cols = lines[0].split(',');
+  
+  // Parse data
+  const data = [];
+  const isTKB = cols.includes('Thứ');
+  const map = isTKB ? {
+    CourseID: cols.indexOf('Mã_HP'), SubjectName: cols.indexOf('Tên_HP'),
+    Day: cols.indexOf('Thứ'), TimeSlot: cols.indexOf('Thời_gian'), Room: cols.indexOf('Phòng')
+  } : {
+    CourseID: cols.indexOf('CourseID'), SubjectName: cols.indexOf('SubjectName'),
+    Day: cols.indexOf('Day'), TimeSlot: cols.indexOf('TimeSlot'), Room: cols.indexOf('Room') || cols.indexOf('RoomAssigned')
+  };
+  
+  for(let i=1;i<lines.length;i++){
+    const c = lines[i].split(',');
+    if(c.length < Math.max(...Object.values(map).filter(v=>v>=0))) continue;
+    let day = (c[map.Day]||'').trim();
+    if(day.startsWith('Thứ')) day = dayReverse[day] || day;
+    let slot = (c[map.TimeSlot]||'').trim();
+    if(!day || !slot) continue;
+    slot = normalizeTime(slot); // Chuẩn hóa giờ học
+    data.push({
+      day, slot,
+      course: (c[map.CourseID]||'').trim(),
+      subject: (c[map.SubjectName]||'').trim(),
+      room: (c[map.Room]||'').trim()
+    });
+  }
+  
+  // Tạo grid: lấy tất cả time slot unique và sắp xếp theo thời gian
+  const slots = [...new Set(data.map(d=>d.slot))].sort((a,b)=> {
+    // Lấy giờ bắt đầu để so sánh (ví dụ "08:25-10:05" -> "08:25")
+    const getStartTime = (s) => s.split('-')[0].trim();
+    const timeA = getStartTime(a).replace(':', '');
+    const timeB = getStartTime(b).replace(':', '');
+    return parseInt(timeA || '0') - parseInt(timeB || '0');
+  });
+  
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat'];
+  const gridBody = document.getElementById('grid-body');
+  gridBody.innerHTML = '';
+  
+  slots.forEach(slot => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="time-col">${slot}</td>`;
+    days.forEach(day => {
+      const cell = document.createElement('td');
+      const item = data.find(d => d.day === day && d.slot === slot);
+      if(item){
+        const subject = (item.subject || item.course || '').trim();
+        const room = (item.room || '').trim();
+        cell.innerHTML = `<div style="padding:4px;"><strong>${subject}</strong>${room ? '<br/><small>' + room + '</small>' : ''}</div>`;
+        cell.style.background = '#e3f2fd';
+        cell.style.border = '1px solid #90caf9';
+      }
+      tr.appendChild(cell);
+    });
+    gridBody.appendChild(tr);
+  });
+}
+load();
+</script>
+{% endblock %}
+
+

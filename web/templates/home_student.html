@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Trang chủ (Học sinh){% endblock %}
+{% block page_title %}Trang chủ (Học sinh){% endblock %}
+{% block content %}
+<section class="panel">
+  <h3 style="margin-top:0;">Tổng quan</h3>
+  <div class="grid-3">
+    <div class="card"><h4>Tín chỉ đăng ký</h4><div class="value">—</div></div>
+    <div class="card"><h4>Lịch hôm nay</h4><div class="value">—</div></div>
+    <div class="card"><h4>Điểm trung bình</h4><div class="value">—</div></div>
+  </div>
+  <div class="actions" style="margin-top:12px;">
+    <a class="btn secondary" href="/timetable/student">Xem TKB cá nhân</a>
+    <a class="btn secondary" href="/preview?file=ai_ranked_classes.csv">Xem gợi ý lớp</a>
+  </div>
+</section>
+{% endblock %}
+
+

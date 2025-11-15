@@ -1,0 +1,2 @@
+﻿PreferredDays,PreferredTimeSlots,PreferredRooms,MaxCredits,MinCredits,PreferredTeachers,AvoidTeachers,PreferredBuildings
+"Mon,Tue,Wed,Thu,Fri,Sat","07:00-09:00,09:00-11:00,13:00-15:00,15:00-17:00","D3-504,D3-505,C7-205,C7-206,D5-101,D5-102",24,18,,,"D3,C7,D5,D7"

@@ -1,0 +1,70 @@
+{
+  "no_overlap": {
+    "by": [
+      "Teacher",
+      "RoomAssigned"
+    ],
+    "message": "Không trùng giáo viên/phòng trong cùng Day+TimeSlot",
+    "strict": true
+  },
+  "room_candidates": true,
+  "max_classes_per_slot": null,
+  "max_classes_per_day": null,
+  "min_gap_between_classes": 0,
+  "priority": {
+    "Day": [
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat"
+    ],
+    "TimeSlot": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "description": "Thứ tự ưu tiên khi sắp xếp: Day trước, sau đó TimeSlot"
+  },
+  "user_preferences": {
+    "enabled": true,
+    "source": "timetable_user.csv",
+    "description": "Tích hợp sở thích người dùng từ timetable_user.csv"
+  },
+  "credits": {
+    "max_per_day": null,
+    "max_total": null,
+    "min_total": null,
+    "description": "Ràng buộc về tín chỉ (nếu null thì không giới hạn)"
+  },
+  "teachers": {
+    "preferred": [],
+    "avoid": [],
+    "description": "Danh sách giáo viên ưa thích/tránh (đọc từ timetable_user.csv)"
+  },
+  "buildings": {
+    "preferred": [],
+    "description": "Danh sách toà nhà ưa thích (đọc từ timetable_user.csv)"
+  },
+  "rooms": {
+    "preferred": [],
+    "description": "Danh sách phòng ưa thích (đọc từ timetable_user.csv)"
+  },
+  "time_slots": {
+    "preferred": [],
+    "avoid_rush_hours": false,
+    "preferred_morning": false,
+    "preferred_afternoon": false,
+    "description": "Khung giờ ưa thích (đọc từ timetable_user.csv)"
+  },
+  "fallback": {
+    "allow_teacher_overlap": false,
+    "allow_room_overlap": false,
+    "description": "Khi không thể gán slot hợp lệ, có cho phép vi phạm ràng buộc không"
+  },
+  "version": "2.0",
+  "last_updated": "2025-01-11",
+  "notes": "Cập nhật để hỗ trợ các đặc trưng mới: PreferredTeachers, AvoidTeachers, PreferredBuildings, MaxCredits, MinCredits"
+}

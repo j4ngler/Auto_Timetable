@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Trang chủ (Giáo viên){% endblock %}
+{% block page_title %}Trang chủ (Giáo viên){% endblock %}
+{% block content %}
+<section class="panel">
+  <h3 style="margin-top:0;">Tổng quan</h3>
+  <div class="grid-3">
+    <div class="card"><h4>Lớp trong tuần</h4><div class="value">—</div></div>
+    <div class="card"><h4>Phòng đã đặt</h4><div class="value">—</div></div>
+    <div class="card"><h4>Thông báo</h4><div class="value">—</div></div>
+  </div>
+  <div class="actions" style="margin-top:12px;">
+    <a class="btn secondary" href="/timetable/teacher">Xem TKB cá nhân</a>
+  </div>
+</section>
+{% endblock %}
+
+

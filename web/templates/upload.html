@@ -1,0 +1,270 @@
+{% extends 'base.html' %}
+{% block title %}Upload{% endblock %}
+{% block page_title %}Upload{% endblock %}
+{% block content %}
+<h3 style="margin:8px 0 12px 0;">Upload file đầu vào</h3>
+
+<form id="uploadForm" class="panel">
+  <div style="display:grid; gap:12px;">
+    <div>
+      <label for="target_name">Chọn đích</label>
+      <select id="target_name" name="target_name" required>
+        {% for f in allowed %}
+        <option value="{{ f }}">{{ f }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div>
+      <label for="file">Chọn file</label>
+      <input type="file" id="file" name="file" required />
+    </div>
+
+    <div class="actions">
+      <button class="btn" type="submit">Upload</button>
+      <span id="msg"></span>
+    </div>
+    <progress id="prog" value="0" max="100" style="display:none;"></progress>
+    <p style="color: var(--muted); font-size: 13px;">Chỉ cho phép các tên file trong danh sách an toàn.</p>
+  </div>
+</form>
+
+<!-- Xử lý dữ liệu -->
+<div class="panel" style="margin-top:24px;">
+  <h3 style="margin:0 0 16px 0;">Xử lý dữ liệu</h3>
+  <p style="color:var(--muted); margin-bottom:16px; font-size:14px;">Chạy các script xử lý dữ liệu đầu vào</p>
+  
+  <div style="display:grid; gap:12px;">
+    <div style="display:flex; gap:12px; flex-wrap:wrap;">
+      <button class="btn secondary" id="btnLocMaHocPhan" style="padding:12px 20px;">
+        <i class="bi bi-funnel" style="margin-right:8px;"></i>Lọc mã học phần ET/EE
+      </button>
+      <button class="btn secondary" id="btnBuildTrainingDataset" style="padding:12px 20px;">
+        <i class="bi bi-database" style="margin-right:8px;"></i>Tạo dataset huấn luyện
+      </button>
+      <button class="btn secondary" id="btnBuildSchedulerInput" style="padding:12px 20px;">
+        <i class="bi bi-gear" style="margin-right:8px;"></i>Tạo input cho solver
+      </button>
+    </div>
+    
+    <!-- Job Status -->
+    <div id="dataJob-section" style="display:none; margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
+      <div style="display:grid; gap:8px;">
+        <label for="dataJobId">Job ID</label>
+        <div style="display:flex; gap:8px;">
+          <input id="dataJobId" placeholder="Dán job_id" style="flex:1;" />
+          <button class="btn secondary" id="btnDataPoll">Poll</button>
+        </div>
+        <div id="dataJobStatus" style="background:var(--panel); padding:12px; max-height:400px; overflow:auto;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const form = document.getElementById('uploadForm');
+  const msg = document.getElementById('msg');
+  const prog = document.getElementById('prog');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    msg.textContent = '';
+    const fd = new FormData(form);
+    prog.style.display = 'block';
+    prog.value = 10;
+    try {
+      const res = await fetch('/upload', { method: 'POST', body: fd });
+      prog.value = 80;
+      const data = await res.json();
+      prog.value = 100;
+      if (data.ok) msg.textContent = 'Upload thành công: ' + data.saved_to;
+      else msg.textContent = 'Có lỗi xảy ra';
+    } catch (e) {
+      msg.textContent = 'Upload thất bại';
+    } finally {
+      setTimeout(()=>{ prog.style.display = 'none'; prog.value = 0; }, 800);
+    }
+  });
+
+  // Xử lý dữ liệu - Job management
+  async function post(url) {
+    const res = await fetch(url, { method: 'POST' });
+    if (!res.ok) throw new Error('Request failed');
+    return await res.json();
+  }
+
+  async function get(url) {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Request failed');
+    return await res.json();
+  }
+
+  const btnLocMaHocPhan = document.getElementById('btnLocMaHocPhan');
+  const btnBuildTrainingDataset = document.getElementById('btnBuildTrainingDataset');
+  const btnBuildSchedulerInput = document.getElementById('btnBuildSchedulerInput');
+  const dataJobIdInput = document.getElementById('dataJobId');
+  const dataJobStatus = document.getElementById('dataJobStatus');
+  const btnDataPoll = document.getElementById('btnDataPoll');
+  const dataJobSection = document.getElementById('dataJob-section');
+
+  function formatJobStatus(job) {
+    if (!job) return '<p style="color:var(--muted);">Đang tải...</p>';
+    
+    const status = job.status || 'unknown';
+    const statusColors = {
+      'running': '#3b82f6',
+      'completed': '#10b981',
+      'failed': '#ef4444',
+      'unknown': '#6b7280'
+    };
+    const statusTexts = {
+      'running': 'Đang chạy',
+      'completed': 'Hoàn thành',
+      'failed': 'Thất bại',
+      'unknown': 'Không xác định'
+    };
+    
+    let html = `
+      <div style="display:grid; gap:12px;">
+        <div style="display:flex; align-items:center; gap:8px; padding:8px; background:var(--bg); border-radius:6px;">
+          <div style="width:12px; height:12px; border-radius:50%; background:${statusColors[status] || statusColors.unknown};"></div>
+          <strong>Trạng thái:</strong> <span style="color:${statusColors[status] || statusColors.unknown};">${statusTexts[status] || status}</span>
+        </div>
+    `;
+    
+    if (job.title) {
+      html += `<div><strong>Tiêu đề:</strong> ${job.title}</div>`;
+    }
+    
+    if (job.created_at) {
+      const date = new Date(job.created_at);
+      html += `<div><strong>Thời gian tạo:</strong> ${date.toLocaleString('vi-VN')}</div>`;
+    }
+    
+    // Phân tích logs
+    if (job.logs && job.logs.length > 0) {
+      html += `<div style="margin-top:8px;"><strong>Thông báo:</strong></div>`;
+      html += `<table style="width:100%; border-collapse:collapse; margin-top:8px;">`;
+      html += `<thead><tr style="background:var(--bg); border-bottom:1px solid var(--border);"><th style="padding:8px; text-align:left; width:100px;">Loại</th><th style="padding:8px; text-align:left;">Nội dung</th></tr></thead>`;
+      html += `<tbody>`;
+      
+      const successLogs = [];
+      const errorLogs = [];
+      const warningLogs = [];
+      const infoLogs = [];
+      
+      job.logs.forEach(log => {
+        const logStr = String(log);
+        if (logStr.includes('[SUCCESS]') || logStr.includes('[SUCCESS]')) {
+          successLogs.push(logStr.replace(/\[SUCCESS\]/g, '').trim());
+        } else if (logStr.includes('[ERROR]') || logStr.includes('[ERROR]')) {
+          errorLogs.push(logStr.replace(/\[ERROR\]/g, '').trim());
+        } else if (logStr.includes('[WARNING]') || logStr.includes('[WARNING]')) {
+          warningLogs.push(logStr.replace(/\[WARNING\]/g, '').trim());
+        } else if (logStr.includes('[INFO]') || logStr.includes('[INFO]')) {
+          infoLogs.push(logStr.replace(/\[INFO\]/g, '').trim());
+        } else {
+          infoLogs.push(logStr.trim());
+        }
+      });
+      
+      successLogs.forEach(msg => {
+        html += `<tr><td style="padding:6px 8px; color:#10b981; font-weight:600;">Thành công</td><td style="padding:6px 8px;">${msg}</td></tr>`;
+      });
+      
+      warningLogs.forEach(msg => {
+        html += `<tr><td style="padding:6px 8px; color:#f59e0b; font-weight:600;">Cảnh báo</td><td style="padding:6px 8px;">${msg}</td></tr>`;
+      });
+      
+      errorLogs.forEach(msg => {
+        html += `<tr><td style="padding:6px 8px; color:#ef4444; font-weight:600;">Lỗi</td><td style="padding:6px 8px;">${msg}</td></tr>`;
+      });
+      
+      infoLogs.forEach(msg => {
+        if (msg) html += `<tr><td style="padding:6px 8px; color:var(--muted);">Thông tin</td><td style="padding:6px 8px;">${msg}</td></tr>`;
+      });
+      
+      html += `</tbody></table>`;
+    }
+    
+    if (job.error) {
+      html += `<div style="margin-top:12px; padding:12px; background:#fee2e2; border:1px solid #fecaca; border-radius:6px; color:#991b1b;"><strong>Lỗi:</strong> ${job.error}</div>`;
+    }
+    
+    if (job.result) {
+      const returncode = job.result.returncode;
+      if (returncode !== undefined) {
+        const codeColor = returncode === 0 ? '#10b981' : '#ef4444';
+        html += `<div style="margin-top:8px;"><strong>Mã trả về:</strong> <span style="color:${codeColor};">${returncode}</span></div>`;
+      }
+    }
+    
+    html += `</div>`;
+    return html;
+  }
+
+  async function pollDataJob(id) {
+    dataJobStatus.innerHTML = '<p style="color:var(--muted);">Đang kiểm tra...</p>';
+    let stop = false;
+    while (!stop) {
+      const s = await get(`/status/${id}`);
+      dataJobStatus.innerHTML = formatJobStatus(s);
+      if (s.status === 'completed' || s.status === 'failed') {
+        stop = true;
+      } else {
+        await new Promise(r => setTimeout(r, 1500));
+      }
+    }
+  }
+
+  btnLocMaHocPhan.addEventListener('click', async () => {
+    btnLocMaHocPhan.setAttribute('aria-busy', 'true');
+    try {
+      const data = await post('/run/loc_ma_hoc_phan');
+      dataJobIdInput.value = data.job_id;
+      dataJobSection.style.display = 'block';
+      await pollDataJob(data.job_id);
+    } catch (e) {
+      alert('Lỗi chạy lọc mã học phần');
+    } finally {
+      btnLocMaHocPhan.removeAttribute('aria-busy');
+    }
+  });
+
+  btnBuildTrainingDataset.addEventListener('click', async () => {
+    btnBuildTrainingDataset.setAttribute('aria-busy', 'true');
+    try {
+      const data = await post('/run/build_training_dataset');
+      dataJobIdInput.value = data.job_id;
+      dataJobSection.style.display = 'block';
+      await pollDataJob(data.job_id);
+    } catch (e) {
+      alert('Lỗi tạo dataset huấn luyện');
+    } finally {
+      btnBuildTrainingDataset.removeAttribute('aria-busy');
+    }
+  });
+
+  btnBuildSchedulerInput.addEventListener('click', async () => {
+    btnBuildSchedulerInput.setAttribute('aria-busy', 'true');
+    try {
+      const data = await post('/run/build_scheduler_input');
+      dataJobIdInput.value = data.job_id;
+      dataJobSection.style.display = 'block';
+      await pollDataJob(data.job_id);
+    } catch (e) {
+      alert('Lỗi tạo input cho solver');
+    } finally {
+      btnBuildSchedulerInput.removeAttribute('aria-busy');
+    }
+  });
+
+  btnDataPoll.addEventListener('click', async () => {
+    const id = dataJobIdInput.value.trim();
+    if (!id) return;
+    dataJobSection.style.display = 'block';
+    await pollDataJob(id);
+  });
+  </script>
+{% endblock %}
+
+

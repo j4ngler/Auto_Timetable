@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+{% block title %}Hướng Dẫn Sử Dụng{% endblock %}
+{% block page_title %}Hướng Dẫn Sử Dụng{% endblock %}
+{% block content %}
+
+<style>
+.help-content {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 20px 60px;
+  line-height: 1.8;
+  color: var(--text);
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.help-content h1 {
+  font-size: 36px;
+  color: var(--primary);
+  font-weight: 700;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.help-content > p {
+  text-align: center;
+  color: var(--muted);
+  margin-bottom: 40px;
+  font-size: 16px;
+}
+
+.help-content h2 {
+  font-size: 24px;
+  color: var(--text);
+  border-left: 5px solid var(--primary);
+  padding-left: 12px;
+  margin-top: 48px;
+  margin-bottom: 24px;
+}
+
+.help-content .step-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 28px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  transition: all 0.2s ease;
+}
+
+.help-content .step-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.help-content .step-card h4 {
+  font-size: 18px;
+  color: var(--primary);
+  margin-bottom: 10px;
+}
+
+.help-content ol, .help-content ul {
+  padding-left: 20px;
+}
+
+.help-content li {
+  margin: 6px 0;
+  color: var(--text-secondary);
+}
+
+.help-content .quick-tip {
+  background: linear-gradient(90deg, #fef3c7, #fff8e1);
+  border: 1px solid #fcd34d;
+  border-radius: 10px;
+  padding: 14px 20px;
+  margin: 20px 0;
+  font-size: 15px;
+  color: #92400e;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.help-content code {
+  background: var(--bg-tertiary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Fira Code', monospace;
+  font-size: 14px;
+  color: #e83e8c;
+}
+
+.help-content .workflow-box {
+  background: linear-gradient(180deg, #eff6ff, #ffffff);
+  border: 1px solid #3b82f6;
+  border-left: 6px solid #2563eb;
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin: 24px 0;
+  box-shadow: 0 1px 5px rgba(59,130,246,0.1);
+}
+
+.help-content .workflow-box h4 {
+  margin-top: 0;
+  color: #1e40af;
+}
+
+.help-content .footer-note {
+  text-align: center;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+  margin-top: 48px;
+  padding-top: 24px;
+  font-size: 14px;
+}
+</style>
+
+<div class="help-content">
+  <h1>📘 Hướng Dẫn Sử Dụng Hệ Thống SPCN</h1>
+  <p>Hướng dẫn từng bước để khai thác tối đa các tính năng sắp xếp thời khóa biểu thông minh</p>
+
+  <section>
+    <h2>🔄 Quy Trình Làm Việc (Khuyến Nghị)</h2>
+    <div class="workflow-box">
+      <h4>Quy trình hoàn chỉnh:</h4>
+      <ol>
+        <li><strong>Đăng nhập</strong> vào hệ thống</li>
+        <li>Vào <strong>Upload</strong> → Upload file Excel gốc</li>
+        <li>Click <strong>"Lọc mã học phần ET/EE"</strong></li>
+        <li>Click <strong>"Tạo dataset huấn luyện"</strong></li>
+        <li>(Tùy chọn) Chỉnh sửa <code>timetable_user.csv</code> để cấu hình ưu tiên</li>
+        <li>Click <strong>"Tạo input cho solver"</strong></li>
+        <li>Về <strong>Dashboard</strong> → Click <strong>"Chạy sắp xếp TKB"</strong></li>
+        <li>Xem kết quả tại <strong>"TKB toàn trường"</strong> hoặc <strong>"TKB cá nhân"</strong></li>
+      </ol>
+    </div>
+  </section>
+
+  <section>
+    <h2>🚀 Bắt Đầu</h2>
+    <div class="step-card">
+      <h4>Bước 1: Đăng ký / Đăng nhập</h4>
+      <ol>
+        <li>Truy cập trang web</li>
+        <li>Nếu chưa có tài khoản: chọn <strong>"Sign In"</strong> → Điền thông tin → Click <strong>"Đăng ký"</strong></li>
+        <li>Nếu đã có tài khoản: chọn <strong>"Log In"</strong> → Nhập email/mật khẩu → Click <strong>"Đăng nhập"</strong></li>
+      </ol>
+    </div>
+  </section>
+
+  <section>
+    <h2>📤 Xử Lý Dữ Liệu</h2>
+    <div class="step-card">
+      <h4>Upload File Excel</h4>
+      <ol>
+        <li>Vào menu <strong>"Upload"</strong></li>
+        <li>Chọn file gốc (VD: <code>TKB-20251-K66.xlsx</code>)</li>
+        <li>Click <strong>"Upload"</strong> để tải lên</li>
+      </ol>
+    </div>
+
+    <div class="step-card">
+      <h4>Lọc Mã Học Phần & Tạo Dataset</h4>
+      <ol>
+        <li>Click <strong>"Lọc mã học phần ET/EE"</strong></li>
+        <li>Chờ xử lý → Hệ thống tạo <code>Ma_hoc_phan_ET_EE.xlsx</code></li>
+        <li>Click <strong>"Tạo dataset huấn luyện"</strong> → Sinh ra <code>timetable_all.csv</code></li>
+      </ol>
+    </div>
+
+    <div class="quick-tip">
+      💡 <strong>Mẹo:</strong> Bạn có thể tùy chỉnh file <code>timetable_user.csv</code> để định nghĩa ngày, giờ hoặc phòng ưu tiên trước khi chạy solver.
+    </div>
+  </section>
+
+  <section>
+    <h2>⚙️ Xếp Lịch Tự Động</h2>
+    <div class="step-card">
+      <h4>Chạy Solver AI</h4>
+      <ol>
+        <li>Về <strong>Dashboard</strong></li>
+        <li>Click <strong>"Chạy sắp xếp TKB"</strong></li>
+        <li>Hệ thống sẽ tự động kiểm tra dữ liệu, chạy solver và sinh <code>schedule_final.csv</code></li>
+      </ol>
+    </div>
+
+    <div class="quick-tip">
+      ⏱️ Quá trình có thể mất vài phút, vui lòng không đóng trình duyệt.
+    </div>
+  </section>
+
+  <section>
+    <h2>📅 Xem Kết Quả</h2>
+    <div class="step-card">
+      <h4>Xem TKB Toàn Trường</h4>
+      <p>Vào menu <strong>"TKB toàn trường"</strong> để xem lịch tổng thể.</p>
+    </div>
+
+    <div class="step-card">
+      <h4>Xem TKB Cá Nhân / Giáo Viên</h4>
+      <p>Truy cập <code>/timetable/teacher</code> để xem theo từng cá nhân hoặc giảng viên.</p>
+    </div>
+  </section>
+
+  <div class="footer-note">
+    <p><strong>SPCN System</strong> — Giải pháp AI tự động hóa xếp thời khóa biểu.</p>
+    <p>Liên hệ hỗ trợ qua trang <a href="/contact" style="color: var(--primary); text-decoration: none;">Contact</a>.</p>
+  </div>
+</div>
+
+{% endblock %}

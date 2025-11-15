@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% block title %}Contact{% endblock %}
+{% block page_title %}Contact{% endblock %}
+{% block content %}
+
+<style>
+.contact-panel {
+  max-width: 900px;
+  margin: 0 auto;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 36px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 32px;
+  align-items: center;
+}
+
+.contact-image img {
+  width: 100%;
+  max-width: 340px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: #fffaf0;
+  padding: 8px;
+  object-fit: contain;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.contact-form h1 {
+  margin: 0 0 20px 0;
+  color: var(--text);
+  font-size: 28px;
+  border-left: 5px solid var(--primary);
+  padding-left: 12px;
+}
+
+.contact-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.contact-form label {
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+  display: block;
+}
+
+.contact-form input,
+.contact-form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-tertiary);
+  color: var(--text);
+  font-size: 15px;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
+}
+
+.contact-form textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.contact-form .name-row {
+  display: flex;
+  gap: 12px;
+}
+
+.contact-form button {
+  width: 180px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.contact-form button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .contact-grid {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .contact-image img {
+    margin: 0 auto 20px auto;
+    max-width: 240px;
+  }
+
+  .contact-form h1 {
+    text-align: center;
+    border-left: none;
+    border-bottom: 2px solid var(--primary);
+    display: inline-block;
+    padding-bottom: 6px;
+  }
+
+  .contact-form button {
+    width: 100%;
+  }
+}
+</style>
+
+<section class="contact-panel">
+  <div class="contact-grid">
+    <div class="contact-image">
+      <img src="{{ url_for('static', filename='image5.png') }}" alt="Contact illustration">
+    </div>
+
+    <div class="contact-form">
+      <h1>📬 Contact us</h1>
+      <form method="post">
+        <div class="name-row">
+          <div style="flex:1;">
+            <label>First name</label>
+            <input name="first_name" placeholder="Hai Anh" />
+          </div>
+          <div style="flex:1;">
+            <label>Last name</label>
+            <input name="last_name" placeholder="Le" />
+          </div>
+        </div>
+
+        <div>
+          <label>Email address</label>
+          <input name="email" placeholder="schedhub@gmail.com" />
+        </div>
+
+        <div>
+          <label>Your message</label>
+          <textarea name="message" placeholder="Enter your question or message"></textarea>
+        </div>
+
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

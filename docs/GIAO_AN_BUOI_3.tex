@@ -1,0 +1,392 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[vietnamese]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{booktabs}
+\usepackage{array}
+
+% Cấu hình trang
+\geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textbf{Giáo án buổi 3}}
+\fancyhead[R]{\textbf{AI Gợi ý lớp học - Machine Learning}}
+\fancyfoot[C]{\thepage}
+
+% Định dạng tiêu đề
+\titleformat{\section}
+{\Large\bfseries\color{blue!70!black}}
+{}
+{0em}
+{}[\titlerule]
+
+\titleformat{\subsection}
+{\large\bfseries\color{blue!50!black}}
+{}
+{0em}
+{}
+
+% Màu sắc
+\definecolor{primaryblue}{RGB}{0,102,204}
+\definecolor{secondaryblue}{RGB}{51,153,255}
+
+\begin{document}
+
+% Tiêu đề
+\begin{center}
+    {\Huge\bfseries\color{primaryblue} GIÁO ÁN BUỔI 3}\\[0.5cm]
+    {\Large\bfseries AI GỢI Ý LỚP HỌC - MACHINE LEARNING}\\[0.3cm]
+    {\large Hệ thống xếp thời khóa biểu thông minh}\\[0.5cm]
+    \rule{0.8\textwidth}{0.4pt}\\[0.5cm]
+    {\large Thời lượng: \textbf{2 giờ}}\\[0.3cm]
+    {\large Đối tượng: Học sinh lớp 12}
+\end{center}
+
+\vspace{1cm}
+
+% Thông tin chung
+\section*{Thông tin chung}
+\begin{tabular}{ll}
+    \textbf{Tên dự án:} & Smart Timetable System (SPCN\_HaiAnh) \\
+    \textbf{Buổi học:} & Buổi 3/6 \\
+    \textbf{Thời lượng:} & 2 giờ (120 phút) \\
+    \textbf{Đối tượng:} & Học sinh lớp 12, có kiến thức cơ bản về Python \\
+    \textbf{Mục tiêu chính:} & Hiểu cách AI và Machine Learning gợi ý lớp học dựa trên sở thích người dùng
+\end{tabular}
+
+\vspace{0.5cm}
+
+% Mục tiêu học tập
+\section{Mục tiêu học tập}
+Sau buổi học này, học sinh có thể:
+\begin{itemize}[leftmargin=*]
+    \item Hiểu khái niệm cơ bản về AI và Machine Learning thông qua ví dụ cụ thể
+    \item Biết cách AI tính điểm và xếp hạng lớp học dựa trên sở thích người dùng
+    \item Thực hành chạy AI và phân tích kết quả gợi ý
+    \item Hiểu quá trình học của AI từ input đến output
+    \item So sánh và đánh giá kết quả AI với các bộ sở thích khác nhau
+\end{itemize}
+
+\vspace{0.5cm}
+
+% Phân bổ thời gian
+\section{Phân bổ thời gian}
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\textbf{Phần} & \textbf{Nội dung} & \textbf{Thời lượng} \\
+\midrule
+Phần 1 & AI hoạt động như thế nào? & 45 phút \\
+Phần 2 & Chạy AI và xem kết quả & 45 phút \\
+Phần 3 & Hiểu cách AI học & 30 phút \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\newpage
+
+% PHẦN 1
+\section{Phần 1: AI hoạt động như thế nào?}
+\textbf{Thời lượng:} 45 phút
+
+\subsection{Mục tiêu}
+Hiểu khái niệm cơ bản về AI và Machine Learning thông qua ví dụ cụ thể về gợi ý lớp học.
+
+\subsection{Nội dung giảng dạy}
+
+\subsubsection{1. AI là gì? (10 phút)}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Định nghĩa đơn giản:} AI (Trí tuệ nhân tạo) là khả năng máy tính học từ dữ liệu để đưa ra quyết định thông minh
+    \item \textbf{Ví dụ thực tế:}
+    \begin{itemize}
+        \item Netflix gợi ý phim dựa trên lịch sử xem của bạn
+        \item YouTube đề xuất video bạn có thể thích
+        \item Hệ thống của chúng ta gợi ý lớp học phù hợp với sở thích của bạn
+    \end{itemize}
+    \item \textbf{Kết nối với bài học:} AI sẽ học từ sở thích của bạn (ngày, giờ, phòng) để gợi ý lớp học phù hợp nhất
+\end{itemize}
+
+\subsubsection{2. Cách AI gợi ý lớp học (15 phút)}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Ví dụ cụ thể:}
+    \begin{itemize}
+        \item Bạn thích học thứ 2, 4, 6 $\rightarrow$ AI sẽ ưu tiên lớp học vào những ngày đó
+        \item Bạn thích học buổi sáng (7h-11h) $\rightarrow$ AI sẽ ưu tiên lớp học trong khung giờ đó
+        \item Bạn thích phòng D5-401 $\rightarrow$ AI sẽ ưu tiên lớp học ở phòng đó
+    \end{itemize}
+    \item \textbf{Cách tính điểm:}
+    \begin{itemize}
+        \item Mỗi lớp được chấm điểm dựa trên sở thích của bạn
+        \item Lớp nào phù hợp hơn $\rightarrow$ điểm cao hơn
+        \item Điểm cao nhất $\rightarrow$ Lớp được gợi ý đầu tiên
+    \end{itemize}
+    \item \textbf{Ví dụ tính điểm:}
+    \begin{itemize}
+        \item Lớp A: Thứ 2, 7h-9h, phòng D5-401
+        \item Sở thích của bạn: Thứ 2-4-6, 7h-11h, phòng D5
+        \item Điểm: Thứ 2 (+1), 7h-11h (+1), phòng D5 (+1) = \textbf{3 điểm}
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{3. Random Forest - Thuật toán AI (10 phút)}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Giải thích đơn giản:} Random Forest là thuật toán AI học từ nhiều quyết định nhỏ
+    \item \textbf{Ví dụ:}
+    \begin{itemize}
+        \item Thay vì 1 người quyết định, có nhiều "chuyên gia" cùng đánh giá
+        \item Mỗi "chuyên gia" xem xét một khía cạnh khác nhau
+        \item Kết quả cuối cùng là ý kiến của đa số
+    \end{itemize}
+    \item \textbf{Ưu điểm:} Chính xác hơn, ổn định hơn so với chỉ dùng 1 quyết định
+\end{itemize}
+
+\subsubsection{4. Thực hành (10 phút)}
+\begin{enumerate}[leftmargin=*]
+    \item Mở file \texttt{timetable\_user.csv}
+    \item Sửa sở thích:
+    \begin{itemize}
+        \item \texttt{PreferredDays}: \texttt{Mon, Wed, Fri}
+        \item \texttt{PreferredTimeSlots}: \texttt{07:00-11:00}
+        \item \texttt{PreferredRooms}: \texttt{D5-401, C7-205}
+    \end{itemize}
+    \item Lưu file
+    \item Chạy lệnh: \texttt{python ai\_recommender.py}
+    \item Xem kết quả: \texttt{ai\_ranked\_classes.csv}
+    \item Quan sát: Lớp nào được AI đề xuất cao nhất? Tại sao?
+\end{enumerate}
+
+\subsection{Tài liệu hỗ trợ}
+\begin{itemize}[leftmargin=*]
+    \item File: \texttt{timetable\_user.csv} - Cấu hình sở thích
+    \item Script: \texttt{ai\_recommender.py} - Chạy AI gợi ý
+    \item Kết quả: \texttt{ai\_ranked\_classes.csv} - Danh sách lớp được xếp hạng
+\end{itemize}
+
+\newpage
+
+% PHẦN 2
+\section{Phần 2: Chạy AI và xem kết quả}
+\textbf{Thời lượng:} 45 phút
+
+\subsection{Mục tiêu}
+Thực hành chạy AI và phân tích kết quả gợi ý lớp học.
+
+\subsection{Nội dung giảng dạy}
+
+\subsubsection{1. Chạy script AI (10 phút)}
+\begin{enumerate}[leftmargin=*]
+    \item Mở terminal/command prompt
+    \item Di chuyển đến thư mục dự án
+    \item Chạy lệnh: \texttt{python ai\_recommender.py}
+    \item Quan sát quá trình chạy:
+    \begin{itemize}
+        \item Đọc dữ liệu từ \texttt{timetable\_all.csv}
+        \item Đọc sở thích từ \texttt{timetable\_user.csv}
+        \item Huấn luyện mô hình Random Forest
+        \item Tính điểm AI cho từng lớp
+        \item Lưu kết quả vào \texttt{ai\_ranked\_classes.csv}
+    \end{itemize}
+\end{enumerate}
+
+\subsubsection{2. Phân tích kết quả (20 phút)}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Mở file kết quả:} \texttt{ai\_ranked\_classes.csv}
+    \item \textbf{Các cột quan trọng:}
+    \begin{itemize}
+        \item \texttt{ai\_score}: Điểm AI (càng cao = lớp càng phù hợp)
+        \item \texttt{Mã học phần}: Mã lớp học
+        \item \texttt{Tên môn}: Tên môn học
+        \item \texttt{Giáo viên}: Tên giáo viên
+        \item \texttt{Phòng}: Phòng học
+    \end{itemize}
+    \item \textbf{So sánh lớp có điểm cao vs điểm thấp:}
+    \begin{itemize}
+        \item Lớp điểm cao: Phù hợp với sở thích như thế nào?
+        \item Lớp điểm thấp: Không phù hợp ở điểm nào?
+        \item Giải thích: Tại sao AI đánh giá như vậy?
+    \end{itemize}
+    \item \textbf{Sắp xếp theo điểm:}
+    \begin{itemize}
+        \item Mở file CSV bằng Excel
+        \item Sắp xếp cột \texttt{ai\_score} giảm dần
+        \item Quan sát Top 10 lớp được AI đề xuất
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{3. Thử nghiệm với sở thích khác nhau (15 phút)}
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Thử nghiệm 1:} Thay đổi \texttt{PreferredDays}
+    \begin{itemize}
+        \item Trước: \texttt{Mon, Wed, Fri}
+        \item Sau: \texttt{Tue, Thu}
+        \item Chạy lại AI $\rightarrow$ Quan sát điểm AI thay đổi như thế nào?
+    \end{itemize}
+    \item \textbf{Thử nghiệm 2:} Thay đổi \texttt{PreferredTimeSlots}
+    \begin{itemize}
+        \item Trước: \texttt{07:00-11:00}
+        \item Sau: \texttt{13:00-17:00}
+        \item Chạy lại AI $\rightarrow$ Quan sát điểm AI thay đổi như thế nào?
+    \end{itemize}
+    \item \textbf{So sánh kết quả:}
+    \begin{itemize}
+        \item Top 5 lớp trước và sau khi thay đổi sở thích
+        \item Giải thích: Tại sao điểm AI thay đổi?
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Bài tập thực hành}
+\begin{enumerate}[leftmargin=*]
+    \item Chạy AI với 3 bộ sở thích khác nhau
+    \item Ghi lại Top 5 lớp được AI đề xuất cho mỗi bộ sở thích
+    \item So sánh và giải thích sự khác biệt
+    \item Viết nhận xét: AI có gợi ý đúng với sở thích của bạn không?
+\end{enumerate}
+
+\newpage
+
+% PHẦN 3
+\section{Phần 3: Hiểu cách AI học}
+\textbf{Thời lượng:} 30 phút
+
+\subsection{Mục tiêu}
+Hiểu cơ bản về quá trình học của AI từ input đến output.
+
+\subsection{Nội dung giảng dạy}
+
+\subsubsection{1. Quy trình AI học (15 phút)}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Input (Đầu vào):}
+    \begin{itemize}
+        \item Sở thích của bạn: Ngày, giờ, phòng
+        \item Dữ liệu lớp học: Tất cả lớp cần xếp
+        \item Lịch sử: Các lớp bạn đã chọn trước đó (nếu có)
+    \end{itemize}
+    \item \textbf{Xử lý (Processing):}
+    \begin{itemize}
+        \item AI so sánh từng lớp với sở thích của bạn
+        \item Tính điểm phù hợp cho từng lớp
+        \item Sử dụng Random Forest để dự đoán chính xác
+    \end{itemize}
+    \item \textbf{Output (Đầu ra):}
+    \begin{itemize}
+        \item Điểm số cho mỗi lớp (\texttt{ai\_score})
+        \item Danh sách lớp được sắp xếp theo điểm (cao $\rightarrow$ thấp)
+        \item Top gợi ý: Lớp nào bạn nên chọn?
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{2. Ví dụ cụ thể tính điểm (10 phút)}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Thông tin lớp:}
+    \begin{itemize}
+        \item Lớp: \texttt{EE2001-01}
+        \item Thứ: Thứ 2
+        \item Giờ: 7h-9h
+        \item Phòng: D5-401
+        \item Giáo viên: Nguyễn Văn A
+    \end{itemize}
+    \item \textbf{Sở thích của bạn:}
+    \begin{itemize}
+        \item Ngày ưa thích: Thứ 2, 4, 6
+        \item Khung giờ: 7h-11h
+        \item Phòng ưa thích: D5-401, C7-205
+    \end{itemize}
+    \item \textbf{Cách tính điểm:}
+    \begin{itemize}
+        \item Thứ 2 $\in$ \{Thứ 2, 4, 6\} $\rightarrow$ +1 điểm
+        \item 7h-9h $\subset$ 7h-11h $\rightarrow$ +1 điểm
+        \item D5-401 $\in$ \{D5-401, C7-205\} $\rightarrow$ +1 điểm
+        \item \textbf{Tổng điểm: 3 điểm}
+    \end{itemize}
+    \item \textbf{So sánh với lớp khác:}
+    \begin{itemize}
+        \item Lớp B: Thứ 3, 13h-15h, phòng C7-205
+        \item Thứ 3 $\notin$ \{Thứ 2, 4, 6\} $\rightarrow$ 0 điểm
+        \item 13h-15h $\not\subset$ 7h-11h $\rightarrow$ 0 điểm
+        \item C7-205 $\in$ \{D5-401, C7-205\} $\rightarrow$ +1 điểm
+        \item \textbf{Tổng điểm: 1 điểm}
+    \end{itemize}
+    \item \textbf{Kết luận:} Lớp A (3 điểm) được AI đề xuất cao hơn Lớp B (1 điểm)
+\end{itemize}
+
+\subsubsection{3. Random Forest - Nhiều cây quyết định (5 phút)}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Ý tưởng:} Thay vì 1 người quyết định, có nhiều "chuyên gia" cùng đánh giá
+    \item \textbf{Cách hoạt động:}
+    \begin{itemize}
+        \item Mỗi "cây quyết định" xem xét một khía cạnh khác nhau
+        \item Cây 1: Xem xét ngày học
+        \item Cây 2: Xem xét khung giờ
+        \item Cây 3: Xem xét phòng học
+        \item ... (nhiều cây khác)
+        \item Kết quả cuối cùng: Trung bình điểm của tất cả các cây
+    \end{itemize}
+    \item \textbf{Ưu điểm:} Chính xác hơn, ổn định hơn so với chỉ dùng 1 quyết định
+\end{itemize}
+
+\subsection{Thực hành nâng cao}
+\begin{enumerate}[leftmargin=*]
+    \item Thử nghiệm với sở thích rất cụ thể:
+    \begin{itemize}
+        \item Chỉ thích 1 ngày: \texttt{Mon}
+        \item Chỉ thích 1 khung giờ: \texttt{07:00-09:00}
+        \item Chỉ thích 1 phòng: \texttt{D5-401}
+    \end{itemize}
+    \item Chạy lại AI $\rightarrow$ Quan sát điểm AI phân hóa rõ hơn
+    \item Giải thích: Sở thích càng cụ thể $\rightarrow$ AI càng chính xác
+    \item So sánh với sở thích mở rộng (nhiều ngày, nhiều giờ, nhiều phòng)
+\end{enumerate}
+
+\newpage
+
+% TỔNG KẾT
+\section{Tổng kết buổi học}
+
+\subsection{Những điểm chính}
+\begin{itemize}[leftmargin=*]
+    \item AI học từ sở thích của bạn để gợi ý lớp học phù hợp
+    \item Mỗi lớp được chấm điểm dựa trên mức độ phù hợp với sở thích
+    \item Random Forest là thuật toán AI sử dụng nhiều quyết định để dự đoán chính xác
+    \item Sở thích càng cụ thể $\rightarrow$ AI càng chính xác
+\end{itemize}
+
+\subsection{Câu hỏi kiểm tra}
+\begin{enumerate}[leftmargin=*]
+    \item AI là gì? Cho ví dụ về cách AI gợi ý lớp học.
+    \item Điểm AI (\texttt{ai\_score}) có ý nghĩa gì? Lớp nào được đề xuất cao nhất?
+    \item Tại sao khi thay đổi sở thích, điểm AI của các lớp thay đổi?
+    \item Random Forest hoạt động như thế nào? Tại sao nó chính xác hơn?
+\end{enumerate}
+
+\subsection{Bài tập về nhà}
+\begin{enumerate}[leftmargin=*]
+    \item Thử nghiệm với 3 bộ sở thích khác nhau trong \texttt{timetable\_user.csv}
+    \item Chạy AI cho mỗi bộ sở thích và ghi lại Top 5 lớp được AI đề xuất
+    \item So sánh và giải thích sự khác biệt giữa các kết quả
+    \item Viết nhận xét ngắn (100-200 từ): AI có gợi ý đúng với sở thích của bạn không? Cần cải thiện gì?
+\end{enumerate}
+
+\subsection{Chuẩn bị cho buổi sau}
+\begin{itemize}[leftmargin=*]
+    \item Đọc trước nội dung buổi 4: "Tự động xếp thời khóa biểu"
+    \item Hiểu các quy tắc xếp lịch: Không trùng giáo viên, không trùng phòng
+    \item Xem file \texttt{constraints.json} để hiểu các quy tắc
+\end{itemize}
+
+\vspace{1cm}
+
+\begin{center}
+    \rule{0.8\textwidth}{0.4pt}\\[0.5cm]
+    {\large\bfseries Chúc các em học tốt!}\\[0.3cm]
+    {\large Buổi 4: Tự động xếp thời khóa biểu}
+\end{center}
+
+\end{document}
+
