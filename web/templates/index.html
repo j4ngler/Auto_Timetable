@@ -82,9 +82,10 @@
     <a class="btn secondary" href="/timetable/student" style="padding:12px 20px;">
       <i class="bi bi-person" style="margin-right:8px;"></i>TKB Cá nhân (Học sinh)
     </a>
-    <a class="btn secondary" href="/timetable/teacher" style="padding:12px 20px;">
+    <!-- Tạm thời ẩn TKB giáo viên vì dữ liệu không có cột Teacher -->
+    <!-- <a class="btn secondary" href="/timetable/teacher" style="padding:12px 20px;">
       <i class="bi bi-person-badge" style="margin-right:8px;"></i>TKB Cá nhân (Giáo viên)
-    </a>
+    </a> -->
   </div>
 </div>
 
@@ -95,15 +96,23 @@
       const res = await fetch('/api/stats');
       const stats = await res.json();
       
-      // Update KPI cards
-      document.getElementById('stat-total-classes').textContent = stats.total_classes || 0;
-      document.getElementById('stat-total-rooms').textContent = stats.total_rooms || 0;
-      document.getElementById('stat-total-courses').textContent = stats.total_courses || 0;
-      
-      // Fill rate
-      const fillRate = stats.total_slots > 0 ? 
-        Math.round((stats.filled_slots / stats.total_slots) * 100) : 0;
-      document.getElementById('stat-fill-rate').textContent = fillRate + '%';
+      // Update KPI cards - chỉ hiển thị nếu có dữ liệu
+      if (stats.has_data) {
+        document.getElementById('stat-total-classes').textContent = stats.total_classes || 0;
+        document.getElementById('stat-total-rooms').textContent = stats.total_rooms || 0;
+        document.getElementById('stat-total-courses').textContent = stats.total_courses || 0;
+        
+        // Fill rate
+        const fillRate = stats.total_slots > 0 ? 
+          Math.round((stats.filled_slots / stats.total_slots) * 100) : 0;
+        document.getElementById('stat-fill-rate').textContent = fillRate + '%';
+      } else {
+        // Người dùng mới chưa có dữ liệu
+        document.getElementById('stat-total-classes').textContent = '-';
+        document.getElementById('stat-total-rooms').textContent = '-';
+        document.getElementById('stat-total-courses').textContent = '-';
+        document.getElementById('stat-fill-rate').textContent = '-';
+      }
       
       // Personal stats (today + week)
       try {
@@ -115,34 +124,45 @@
         const dayNames = {'Mon': 'Thứ 2', 'Tue': 'Thứ 3', 'Wed': 'Thứ 4', 'Thu': 'Thứ 5', 'Fri': 'Thứ 6', 'Sat': 'Thứ 7'};
 
         // Hôm nay
-        if (ps.has_data && ps.today && ps.today.length) {
-          todayWrap.innerHTML = ps.today.map(item => `
-            <div style="display:flex; align-items:center; justify-content:space-between; padding:10px; border:1px solid var(--border); background:var(--panel); border-radius:8px;">
-              <div style="font-weight:700; color:#1e40af; min-width:90px;">${item.time}</div>
-              <div style="flex:1; padding:0 8px;">${item.subject || ''}</div>
-              <div style="color:var(--muted); min-width:80px; text-align:right;">${item.room || ''}</div>
-            </div>
-          `).join('');
-          todayNote.textContent = `Nguồn dữ liệu: ${ps.source}`;
+        if (ps.has_data) {
+          if (ps.today && ps.today.length) {
+            todayWrap.innerHTML = ps.today.map(item => `
+              <div style="display:flex; align-items:center; justify-content:space-between; padding:10px; border:1px solid var(--border); background:var(--panel); border-radius:8px;">
+                <div style="font-weight:700; color:#1e40af; min-width:90px;">${item.time}</div>
+                <div style="flex:1; padding:0 8px;">${item.subject || ''}</div>
+                <div style="color:var(--muted); min-width:80px; text-align:right;">${item.room || ''}</div>
+              </div>
+            `).join('');
+            todayNote.textContent = `Nguồn dữ liệu: ${ps.source}`;
+          } else {
+            todayWrap.innerHTML = '<p style="color:var(--muted);">Hôm nay không có lớp.</p>';
+            todayNote.textContent = `Nguồn dữ liệu: ${ps.source}`;
+          }
         } else {
-          todayWrap.innerHTML = '<p style="color:var(--muted);">Hôm nay không có lớp.</p>';
-          todayNote.textContent = ps.source ? `Nguồn dữ liệu: ${ps.source}` : '';
+          todayWrap.innerHTML = '<p style="color:var(--muted);">Chưa có dữ liệu cá nhân. Hãy chạy "Tạo TKB gợi ý" để xem lịch của bạn.</p>';
+          todayNote.textContent = '';
         }
 
         // Tuần này (đếm theo ngày)
         const weekWrap = document.getElementById('weekly-summary');
         if (ps.has_data && ps.counts_by_day) {
-          weekWrap.innerHTML = daysOrder.map(d => {
-            const cnt = ps.counts_by_day[d] || 0;
-            return `
-              <div title="${dayNames[d]}: ${cnt} lớp" style="min-width:120px; padding:12px; border:1px solid var(--border); border-radius:8px; background:var(--panel); display:flex; flex-direction:column; align-items:center;">
-                <div style="font-size:12px; color:var(--muted);">${dayNames[d]}</div>
-                <div style="font-size:22px; font-weight:800; color:#2563eb;">${cnt}</div>
-              </div>
-            `;
-          }).join('');
+          // Kiểm tra xem có ít nhất 1 lớp nào không
+          const hasAnyClass = Object.values(ps.counts_by_day).some(cnt => cnt > 0);
+          if (hasAnyClass) {
+            weekWrap.innerHTML = daysOrder.map(d => {
+              const cnt = ps.counts_by_day[d] || 0;
+              return `
+                <div title="${dayNames[d]}: ${cnt} lớp" style="min-width:120px; padding:12px; border:1px solid var(--border); border-radius:8px; background:var(--panel); display:flex; flex-direction:column; align-items:center;">
+                  <div style="font-size:12px; color:var(--muted);">${dayNames[d]}</div>
+                  <div style="font-size:22px; font-weight:800; color:#2563eb;">${cnt}</div>
+                </div>
+              `;
+            }).join('');
+          } else {
+            weekWrap.innerHTML = '<p style="color:var(--muted);">Chưa có dữ liệu cá nhân. Hãy chạy "Tạo TKB gợi ý" để xem lịch của bạn.</p>';
+          }
         } else {
-          weekWrap.innerHTML = '<p style="color:var(--muted);">Chưa có dữ liệu cá nhân.</p>';
+          weekWrap.innerHTML = '<p style="color:var(--muted);">Chưa có dữ liệu cá nhân. Hãy chạy "Tạo TKB gợi ý" để xem lịch của bạn.</p>';
         }
       } catch (e) {
         console.error('Lỗi tải personal stats', e);

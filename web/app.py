@@ -37,12 +37,15 @@ def create_app() -> Flask:
         'constraints.json',
         'timetable_user.csv',
         'TKB_ca_nhan.csv',
+        'TKB_ca_nhan.xlsx',
+        'TKB.xlsx',
     }
 
     def project_path(filename: str) -> str:
-        """Tìm file ở vị trí mới (data/output/, config/) hoặc vị trí cũ (thư mục gốc)"""
+        """Tìm file ở vị trí mới (data/output/, data/input/, config/) hoặc vị trí cũ (thư mục gốc)"""
         # Đường dẫn mới
         data_output = os.path.join(app.config['PROJECT_BASE_DIR'], 'data', 'output')
+        data_input = os.path.join(app.config['PROJECT_BASE_DIR'], 'data', 'input')
         config_dir = os.path.join(app.config['PROJECT_BASE_DIR'], 'config')
         
         # File config
@@ -51,7 +54,16 @@ def create_app() -> Flask:
             if os.path.exists(new_path):
                 return new_path
         
-        # File output
+        # File Excel: ưu tiên data/input/, sau đó data/output/
+        if filename.endswith('.xlsx') or filename.endswith('.xls'):
+            new_path = os.path.join(data_input, filename)
+            if os.path.exists(new_path):
+                return new_path
+            new_path = os.path.join(data_output, filename)
+            if os.path.exists(new_path):
+                return new_path
+        
+        # File output (CSV, TXT)
         if filename.endswith('.csv') or filename.endswith('.txt'):
             new_path = os.path.join(data_output, filename)
             if os.path.exists(new_path):
@@ -61,11 +73,11 @@ def create_app() -> Flask:
         return os.path.join(app.config['PROJECT_BASE_DIR'], filename)
 
     def resolve_major_path(filename: str) -> str:
-        """Nếu có phiên bản theo major (EE/ET) thì ưu tiên dùng.
+        """Nếu có phiên bản theo major thì ưu tiên dùng.
         Ví dụ: schedule_final.csv -> schedule_final_EE.csv
         """
         major = session.get('user_major')
-        if major in ('EE','ET') and filename in ('schedule_final.csv', 'ai_ranked_classes.csv'):
+        if major in ('EE','ET','MI','IT','MSE','FL','CH','BF','EM','PH') and filename in ('schedule_final.csv', 'ai_ranked_classes.csv'):
             base, ext = os.path.splitext(filename)
             candidate = f"{base}_{major}{ext}"
             cand_abs = project_path(candidate)
@@ -73,9 +85,9 @@ def create_app() -> Flask:
                 return cand_abs
         return project_path(filename)
 
-    # Warm cache theo major (tạo file _EE/_ET nếu chưa có) chạy nền
+    # Warm cache theo major (tạo file theo major nếu chưa có) chạy nền
     def warm_cache_for_major(major: Optional[str]):
-        if major not in ('EE','ET'):
+        if major not in ('EE','ET','MI','IT','MSE','FL','CH','BF','EM','PH'):
             return
         # Nếu đã có file theo major thì bỏ qua
         base = os.path.join(app.config['PROJECT_BASE_DIR'], f'schedule_final_{major}.csv')
@@ -132,14 +144,21 @@ def create_app() -> Flask:
 
         cmd = [sys.executable, script_abs] + args
         # Đảm bảo chạy từ thư mục gốc dự án
+        # Set encoding UTF-8 để tránh lỗi decode tiếng Việt
+        env = dict(os.environ)
+        env['PYTHONIOENCODING'] = 'utf-8'
+        env['PYTHONUTF8'] = '1'
+        
         proc = subprocess.Popen(
             cmd,
             cwd=app.config['PROJECT_BASE_DIR'],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
+            encoding='utf-8',  # Ép decode stdout/stderr bằng UTF-8
+            errors='replace',  # Tránh vỡ job vì vài ký tự lạ
             bufsize=1,
-            env=dict(os.environ, PYTHONIOENCODING='utf-8'),  # Đảm bảo encoding UTF-8
+            env=env,
         )
         logs = []
         for line in proc.stdout:  # type: ignore[union-attr]
@@ -291,27 +310,80 @@ def create_app() -> Flask:
         else:
             raise FileNotFoundError('Không tìm thấy recommend_schedule.py')
 
-    def job_run_loc_ma_hoc_phan(job_id: str):
-        # Lọc mã học phần ET/EE từ file Excel gốc
+    def job_run_loc_ma_hoc_phan(job_id: str, major: Optional[str] = None):
+        # Lọc mã học phần các ngành từ file Excel hoặc CSV đã upload
         scripts_dir = os.path.join(app.config['PROJECT_BASE_DIR'], 'scripts')
         if os.path.exists(os.path.join(scripts_dir, 'loc_ma_hoc_phan.py')):
-            return run_script(job_id, 'loc_ma_hoc_phan.py')
+            # Tìm file đã upload: ưu tiên Excel, sau đó CSV
+            uploaded_file = None
+            data_input_dir = os.path.join(app.config['PROJECT_BASE_DIR'], 'data', 'input')
+            data_output_dir = os.path.join(app.config['PROJECT_BASE_DIR'], 'data', 'output')
+            
+            # Thử tìm file Excel trước
+            for xls_name in ['TKB_ca_nhan.xlsx', 'TKB.xlsx', 'TKB-20251-K66-69-du-kien-15.07.2025.xlsx']:
+                # Thử trong data/output/ trước
+                xls_path1 = os.path.join(data_output_dir, xls_name)
+                if os.path.exists(xls_path1):
+                    uploaded_file = xls_path1
+                    break
+                # Thử trong data/input/
+                xls_path2 = os.path.join(data_input_dir, xls_name)
+                if os.path.exists(xls_path2):
+                    uploaded_file = xls_path2
+                    break
+                # Thử trong thư mục gốc
+                xls_path3 = os.path.join(app.config['PROJECT_BASE_DIR'], xls_name)
+                if os.path.exists(xls_path3):
+                    uploaded_file = xls_path3
+                    break
+            
+            # Nếu không có Excel, tìm CSV
+            if not uploaded_file:
+                for csv_name in ['TKB_ca_nhan.csv', 'TKB.csv']:
+                    # Thử trong data/output/ trước
+                    csv_path1 = project_path(csv_name)
+                    if os.path.exists(csv_path1):
+                        uploaded_file = csv_path1
+                        break
+                    # Thử trong data/input/
+                    csv_path2 = os.path.join(data_input_dir, csv_name)
+                    if os.path.exists(csv_path2):
+                        uploaded_file = csv_path2
+                        break
+            
+            args = []
+            if major and major in ('EE','ET','MI','IT','MSE','FL','CH','BF','EM','PH'):
+                args.append('--major')
+                args.append(major)
+            
+            # Nếu có file đã upload, truyền vào script
+            if uploaded_file and os.path.exists(uploaded_file):
+                args.append('--file')
+                args.append(uploaded_file)
+            
+            return run_script(job_id, 'loc_ma_hoc_phan.py', args=args if args else None)
         else:
             raise FileNotFoundError('Không tìm thấy loc_ma_hoc_phan.py')
 
-    def job_run_build_training_dataset(job_id: str):
+    def job_run_build_training_dataset(job_id: str, major: Optional[str] = None):
         # Tạo dataset huấn luyện từ Excel
         scripts_dir = os.path.join(app.config['PROJECT_BASE_DIR'], 'scripts')
         if os.path.exists(os.path.join(scripts_dir, 'build_training_dataset.py')):
-            return run_script(job_id, 'build_training_dataset.py')
+            if major and major in ('EE','ET','MI','IT','MSE','FL','CH','BF','EM','PH'):
+                return run_script(job_id, 'build_training_dataset.py', args=['--major', major])
+            else:
+                return run_script(job_id, 'build_training_dataset.py')
         else:
             raise FileNotFoundError('Không tìm thấy build_training_dataset.py')
 
-    def job_run_build_scheduler_input(job_id: str):
-        # Tạo input cho solver
+    def job_run_build_scheduler_input(job_id: str, major: Optional[str] = None):
+        # Tạo input cho solver từ Excel
         scripts_dir = os.path.join(app.config['PROJECT_BASE_DIR'], 'scripts')
         if os.path.exists(os.path.join(scripts_dir, 'build_scheduler_input.py')):
-            return run_script(job_id, 'build_scheduler_input.py')
+            if major and major in ('EE','ET','MI','IT','MSE','FL','CH','BF','EM','PH'):
+                return run_script(job_id, 'build_scheduler_input.py', args=['--major', major])
+            else:
+                return run_script(job_id, 'build_scheduler_input.py')
         else:
             raise FileNotFoundError('Không tìm thấy build_scheduler_input.py')
 
@@ -422,7 +494,7 @@ def create_app() -> Flask:
         cohort = (request.form.get('cohort') or '').strip()
         class_name = (request.form.get('class_name') or '').strip()
         avatar_url = (request.form.get('avatar_url') or '').strip()
-        if major not in ('EE','ET'):
+        if major not in ('EE','ET','MI','IT','MSE','FL','CH','BF','EM','PH'):
             major = session.get('user_major') or 'EE'
         _update_user_profile(session.get('user_email'), name, phone, cohort, class_name, major, avatar_url)
         session['user_major'] = major
@@ -435,7 +507,7 @@ def create_app() -> Flask:
     @app.route('/run/schedule', methods=['POST'])
     def run_schedule():
         major = session.get('user_major')
-        if major in ('EE','ET'):
+        if major in ('EE','ET','MI','IT','MSE','FL','CH','BF','EM','PH'):
             job_id = start_job('Chạy sắp xếp thời khoá biểu', job_run_scheduler, args=(['--major', major],))
         else:
             job_id = start_job('Chạy sắp xếp thời khoá biểu', job_run_scheduler)
@@ -444,7 +516,7 @@ def create_app() -> Flask:
     @app.route('/run/recommend', methods=['POST'])
     def run_recommend():
         major = request.args.get('major') or session.get('user_major')
-        if major in ('EE','ET'):
+        if major in ('EE','ET','MI','IT','MSE','FL','CH','BF','EM','PH'):
             job_id = start_job('Chạy gợi ý lớp học kỳ tiếp theo', job_run_recommender, args=(['--major', major],))
         else:
             job_id = start_job('Chạy gợi ý lớp học kỳ tiếp theo', job_run_recommender)
@@ -457,17 +529,38 @@ def create_app() -> Flask:
 
     @app.route('/run/loc_ma_hoc_phan', methods=['POST'])
     def run_loc_ma_hoc_phan():
-        job_id = start_job('Lọc mã học phần ET/EE', job_run_loc_ma_hoc_phan)
+        # Lấy major từ session của user
+        user_major = session.get('user_major')
+        if user_major and user_major in ('EE','ET','MI','IT','MSE','FL','CH','BF','EM','PH'):
+            job_title = f'Lọc mã học phần ngành {user_major}'
+            job_id = start_job(job_title, job_run_loc_ma_hoc_phan, args=(user_major,))
+        else:
+            job_title = 'Lọc mã học phần các ngành'
+            job_id = start_job(job_title, job_run_loc_ma_hoc_phan)
         return jsonify({'job_id': job_id})
 
     @app.route('/run/build_training_dataset', methods=['POST'])
     def run_build_training_dataset():
-        job_id = start_job('Tạo dataset huấn luyện', job_run_build_training_dataset)
+        # Lấy major từ session của user
+        user_major = session.get('user_major')
+        if user_major and user_major in ('EE','ET','MI','IT','MSE','FL','CH','BF','EM','PH'):
+            job_title = f'Tạo dataset huấn luyện (ngành {user_major})'
+            job_id = start_job(job_title, job_run_build_training_dataset, args=(user_major,))
+        else:
+            job_title = 'Tạo dataset huấn luyện'
+            job_id = start_job(job_title, job_run_build_training_dataset)
         return jsonify({'job_id': job_id})
 
     @app.route('/run/build_scheduler_input', methods=['POST'])
     def run_build_scheduler_input():
-        job_id = start_job('Tạo input cho solver', job_run_build_scheduler_input)
+        # Lấy major từ session của user
+        user_major = session.get('user_major')
+        if user_major and user_major in ('EE','ET','MI','IT','MSE','FL','CH','BF','EM','PH'):
+            job_title = f'Tạo input cho solver (ngành {user_major})'
+            job_id = start_job(job_title, job_run_build_scheduler_input, args=(user_major,))
+        else:
+            job_title = 'Tạo input cho solver'
+            job_id = start_job(job_title, job_run_build_scheduler_input)
         return jsonify({'job_id': job_id})
 
     @app.route('/status/<job_id>')
@@ -481,6 +574,7 @@ def create_app() -> Flask:
     def api_stats():
         """Trả về thống kê từ các file CSV để hiển thị dashboard"""
         stats = {
+            'has_data': False,  # Flag để đánh dấu có dữ liệu thực sự hay không
             'total_classes': 0,
             'total_rooms': 0,
             'total_courses': 0,
@@ -510,7 +604,7 @@ def create_app() -> Flask:
                     reader = csv.DictReader(f)
                     for row in reader:
                         # Nếu đang xem theo major nhưng file không tách theo major, lọc theo prefix CourseID
-                        if user_major in ('EE','ET'):
+                        if user_major in ('EE','ET','MI','IT','MSE','FL','CH','BF','EM','PH'):
                             cid = (row.get('CourseID') or '').strip()
                             if cid and not cid.startswith(user_major):
                                 continue
@@ -536,7 +630,7 @@ def create_app() -> Flask:
                 with open(schedule_path, 'r', encoding='utf-8-sig') as f:
                     reader = csv.DictReader(f)
                     for row in reader:
-                        if user_major in ('EE','ET'):
+                        if user_major in ('EE','ET','MI','IT','MSE','FL','CH','BF','EM','PH'):
                             cid = (row.get('CourseID') or '').strip()
                             if cid and not cid.startswith(user_major):
                                 continue
@@ -545,36 +639,10 @@ def create_app() -> Flask:
                         if day and slot:
                             filled_slots_set.add(f"{day}-{slot}")
                 stats['filled_slots'] = len(filled_slots_set)
-
-                # Nếu vì lọc theo major mà về 0 (chưa có bản theo major), fallback: đếm toàn bộ
-                if stats['total_classes'] == 0 and user_major in ('EE','ET'):
-                    with open(schedule_path, 'r', encoding='utf-8-sig') as f2:
-                        reader2 = csv.DictReader(f2)
-                        for row in reader2:
-                            stats['total_classes'] += 1
-                            day = (row.get('Day') or '').strip()
-                            slot = (row.get('TimeSlot') or '').strip()
-                            if day in stats['classes_by_day']:
-                                stats['classes_by_day'][day] += 1
-                                if slot in ('1','2','3','4'):
-                                    stats['classes_by_day_slot'][day][slot] += 1
-                            room = (row.get('RoomAssigned') or '').strip()
-                            if room:
-                                rooms_set.add(room)
-                            course = (row.get('CourseID') or '').strip()
-                            if course:
-                                courses_set.add(course)
-                    stats['total_rooms'] = len(rooms_set)
-                    stats['total_courses'] = len(courses_set)
-                    filled_slots_set = set()
-                    with open(schedule_path, 'r', encoding='utf-8-sig') as f3:
-                        reader3 = csv.DictReader(f3)
-                        for row in reader3:
-                            day = row.get('Day', '').strip()
-                            slot = row.get('TimeSlot', '').strip()
-                            if day and slot:
-                                filled_slots_set.add(f"{day}-{slot}")
-                    stats['filled_slots'] = len(filled_slots_set)
+                
+                # Đánh dấu có dữ liệu nếu tìm thấy ít nhất 1 lớp
+                if stats['total_classes'] > 0:
+                    stats['has_data'] = True
             
             # Top recommendations từ ai_ranked_classes.csv
             ai_rank_path = resolve_major_path('ai_ranked_classes.csv')
@@ -584,7 +652,7 @@ def create_app() -> Flask:
                     top_recs = []
                     user_major = session.get('user_major')
                     for row in reader:
-                        if user_major in ('EE','ET'):
+                        if user_major in ('EE','ET','MI','IT','MSE','FL','CH','BF','EM','PH'):
                             cid0 = (row.get('CourseID') or row.get('Mã_HP') or '').strip()
                             if cid0 and not cid0.startswith(user_major):
                                 continue
@@ -601,24 +669,8 @@ def create_app() -> Flask:
                             break
                     stats['top_recommendations'] = top_recs
 
-                    # Fallback khi sau lọc không còn gợi ý nào
-                    if not stats['top_recommendations'] and user_major in ('EE','ET'):
-                        f.seek(0)
-                        reader_all = csv.DictReader(f)
-                        top_recs = []
-                        for row in reader_all:
-                            course_id = row.get('CourseID') or row.get('Mã_HP', '')
-                            subject = row.get('SubjectName') or row.get('Tên_HP', '')
-                            score = row.get('ai_score', '')
-                            if course_id and subject:
-                                top_recs.append({
-                                    'course': course_id,
-                                    'subject': subject[:50],
-                                    'score': float(score) if score else 0
-                                })
-                            if len(top_recs) >= 5:
-                                break
-                        stats['top_recommendations'] = top_recs
+                    # Không fallback về dữ liệu toàn bộ khi user mới chưa có dữ liệu
+                    # Chỉ hiển thị gợi ý cho ngành của user
         except Exception as e:
             # Trả về stats mặc định nếu có lỗi
             pass
@@ -640,7 +692,10 @@ def create_app() -> Flask:
 
         source = first_existing(['schedule_recommended.csv', 'TKB_ca_nhan.csv'])
         if not source:
-            return jsonify({'has_data': False, 'today': [], 'counts_by_day': {}})
+            return jsonify({'has_data': False, 'source': None, 'today': [], 'counts_by_day': {}})
+        
+        # Lọc theo major của user nếu có
+        user_major = session.get('user_major')
 
         # Map cột linh hoạt (VN/EN)
         with open(source, 'r', encoding='utf-8-sig') as f:
@@ -691,6 +746,13 @@ def create_app() -> Flask:
         for r in rows[1:]:
             if max(idx_day, idx_time) < 0:
                 continue
+            
+            # Lọc theo major của user nếu có
+            if user_major and user_major in ('EE','ET','MI','IT','MSE','FL','CH','BF','EM','PH'):
+                course_id = (r[idx_course] if idx_course >= 0 else '').strip()
+                if course_id and not course_id.startswith(user_major):
+                    continue  # Bỏ qua nếu không phải ngành của user
+            
             day = (r[idx_day] if idx_day >= 0 else '').strip()
             # Chuẩn hoá day về Mon..Sat
             if day.startswith('Thứ'):
@@ -711,7 +773,15 @@ def create_app() -> Flask:
             return int(a) if a.isdigit() else 0
         today_list.sort(key=lambda x: start_minutes(x['time']))
 
-        return jsonify({'has_data': True, 'source': os.path.basename(source), 'today': today_list, 'counts_by_day': counts})
+        # Kiểm tra xem có dữ liệu thực sự sau khi lọc theo major không
+        has_any_data = any(counts.values()) or len(today_list) > 0
+        
+        return jsonify({
+            'has_data': has_any_data, 
+            'source': os.path.basename(source) if has_any_data else None, 
+            'today': today_list, 
+            'counts_by_day': counts
+        })
 
     @app.route('/preview')
     def preview():
@@ -939,11 +1009,6 @@ def create_app() -> Flask:
             abort(400, description=f'JSON không hợp lệ: {exc}')
         return jsonify({'ok': True})
 
-    # Timetable pages
-    @app.route('/schedule/new')
-    def schedule_new():
-        return render_template('schedule_new.html')
-
     @app.route('/timetable/school')
     def timetable_school():
         return render_template('timetable_school.html')
@@ -952,13 +1017,14 @@ def create_app() -> Flask:
     def timetable_student():
         return render_template('timetable_student.html')
 
-    @app.route('/timetable/teacher')
-    def timetable_teacher():
-        return render_template('timetable_teacher.html')
+    # Tạm thời ẩn route giáo viên vì dữ liệu không có cột Teacher
+    # @app.route('/timetable/teacher')
+    # def timetable_teacher():
+    #     return render_template('timetable_teacher.html')
 
-    @app.route('/home/teacher')
-    def home_teacher():
-        return render_template('home_teacher.html')
+    # @app.route('/home/teacher')
+    # def home_teacher():
+    #     return render_template('home_teacher.html')
 
     @app.route('/home/student')
     def home_student():

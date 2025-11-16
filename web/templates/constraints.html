@@ -11,9 +11,10 @@
       <div style="display:grid; gap:10px; grid-template-columns: 1fr 1fr;">
         <div>
           <label style="font-weight:600;">Không trùng trong cùng ca</label>
-          <div>
+          <!-- Tạm thời ẩn Teacher vì dữ liệu không có cột Teacher -->
+          <!-- <div>
             <label><input type="checkbox" id="chkTeacher"> Teacher</label>
-          </div>
+          </div> -->
           <div>
             <label><input type="checkbox" id="chkRoom"> RoomAssigned</label>
           </div>
@@ -56,7 +57,8 @@
   const form = document.getElementById('cForm');
   const msg = document.getElementById('msg');
   const txt = document.getElementById('constraints');
-  const chkTeacher = document.getElementById('chkTeacher');
+  // Tạm thời ẩn chkTeacher vì dữ liệu không có cột Teacher
+  // const chkTeacher = document.getElementById('chkTeacher');
   const chkRoom = document.getElementById('chkRoom');
   const roomCandidates = document.getElementById('roomCandidates');
   const maxPerSlot = document.getElementById('maxPerSlot');
@@ -67,7 +69,8 @@
     try {
       const obj = JSON.parse(`{{ constraints_text|tojson|safe }}`);
       const noOverlap = (obj.no_overlap && obj.no_overlap.by) || [];
-      chkTeacher.checked = noOverlap.includes('Teacher');
+      // Tạm thời ẩn chkTeacher vì dữ liệu không có cột Teacher
+      // chkTeacher.checked = noOverlap.includes('Teacher');
       chkRoom.checked = noOverlap.includes('RoomAssigned');
       roomCandidates.checked = !!obj.room_candidates;
       maxPerSlot.value = obj.max_classes_per_slot ?? '';
@@ -82,7 +85,8 @@
     let obj = {};
     obj.no_overlap = obj.no_overlap || {};
     const arr = [];
-    if (chkTeacher.checked) arr.push('Teacher');
+    // Tạm thời ẩn Teacher vì dữ liệu không có cột Teacher
+    // if (chkTeacher.checked) arr.push('Teacher');
     if (chkRoom.checked) arr.push('RoomAssigned');
     obj.no_overlap.by = arr;
     obj.room_candidates = roomCandidates.checked;
@@ -97,7 +101,8 @@
   // Khởi tạo từ JSON ra UI
   loadToUI();
   // Đồng bộ khi người dùng sửa các trường trực quan
-  [chkTeacher, chkRoom, roomCandidates, maxPerSlot, priorityDay, prioritySlot].forEach(el=>{
+  // Tạm thời ẩn chkTeacher vì dữ liệu không có cột Teacher
+  [chkRoom, roomCandidates, maxPerSlot, priorityDay, prioritySlot].forEach(el=>{
     el.addEventListener('input', uiToJson);
     el.addEventListener('change', uiToJson);
   });

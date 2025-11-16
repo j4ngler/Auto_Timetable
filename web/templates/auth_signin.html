@@ -16,8 +16,8 @@
       <div class="input-icon"><i class="bi bi-key"></i><input name="password2" type="password" placeholder="Rewrite password" /></div>
       <div class="input-icon"><i class="bi bi-people"></i>
         <select name="user_mode">
-          <option value="student">User mode</option>
-          <option value="teacher">Teacher</option>
+          <!-- Tạm thời ẩn option Teacher vì dữ liệu không có cột Teacher -->
+          <!-- <option value="teacher">Teacher</option> -->
           <option value="student">Student</option>
         </select>
       </div>
@@ -25,6 +25,14 @@
         <select name="user_major">
           <option value="EE">Ngành: EE (Điện)</option>
           <option value="ET">Ngành: ET (Điện tử Viễn thông)</option>
+          <option value="MI">Ngành: MI (Khoa học Máy tính)</option>
+          <option value="IT">Ngành: IT (Công nghệ Thông tin)</option>
+          <option value="MSE">Ngành: MSE (Khoa học và Kỹ thuật Vật liệu)</option>
+          <option value="FL">Ngành: FL (Ngoại ngữ)</option>
+          <option value="CH">Ngành: CH (Hóa học)</option>
+          <option value="BF">Ngành: BF (Công nghệ Sinh học)</option>
+          <option value="EM">Ngành: EM (Kinh tế)</option>
+          <option value="PH">Ngành: PH (Vật lý)</option>
         </select>
       </div>
       <button class="auth-btn" type="submit">SIGN IN</button>
